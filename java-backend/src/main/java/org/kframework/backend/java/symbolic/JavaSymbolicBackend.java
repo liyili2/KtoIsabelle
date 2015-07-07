@@ -94,6 +94,7 @@ public class JavaSymbolicBackend extends BasicBackend {
     @Override
     public CompilerSteps<Definition> getCompilationSteps() {
         CompilerSteps<Definition> steps = new CompilerSteps<Definition>(context);
+        
         steps.add(new FirstStep(this, context));
         steps.add(new CheckVisitorStep<Definition>(new CheckConfigurationCells(context), context));
         steps.add(new RemoveBrackets(context));
@@ -108,20 +109,23 @@ public class JavaSymbolicBackend extends BasicBackend {
 
         steps.add(new FlattenModules(context, kem));
 
-        steps.add(new CompleteSortLatice(context));
+        //steps.add(new CompleteSortLatice(context));
         steps.add(new CheckVisitorStep<Definition>(new CollectProductionsVisitor(context), context));
         steps.add(new CheckVisitorStep<Definition>(new CollectSubsortsVisitor(context), context));
         steps.add(new CheckVisitorStep<Definition>(new CollectBracketsVisitor(context), context));
 
-        steps.add(new StrictnessToContexts(context));
-        steps.add(new FreezeUserFreezers(context));
-        steps.add(new ContextsToHeating(context));
-        steps.add(new AddSupercoolDefinition(context));
-        steps.add(new AddHeatingConditions(context));
+        //steps.add(new StrictnessToContexts(context));
+        
+       // steps.add(new FreezeUserFreezers(context));
+        //steps.add(new ContextsToHeating(context));
+        //steps.add(new AddSupercoolDefinition(context));
+        //steps.add(new AddHeatingConditions(context));
         //steps.add(new AddSuperheatRules(context));
+        
         steps.add(new DesugarStreams(context));
         steps.add(new ResolveFunctions(context));
         steps.add(new AddKCell(context));
+        
         steps.add(new AddStreamCells(context));
         steps.add(new ResolveHybrid(context));
         //steps.add(new AddSymbolicK(context));
@@ -130,10 +134,11 @@ public class JavaSymbolicBackend extends BasicBackend {
         //steps.add(new FreshCondToFreshVar(context));
         //steps.add(new ResolveFreshVarMOS(context));
 
-        /* fast rewriting related stuff */
+         //fast rewriting related stuff
         steps.add(new ComputeCellsOfInterest(context));
 
         steps.add(new AddTopCellConfig(context));
+        
         steps.add(new AddTopCellRules(context));
 
         steps.add(new ResolveBinder(context));
@@ -144,7 +149,7 @@ public class JavaSymbolicBackend extends BasicBackend {
         steps.add(new ResolveListOfK(context));
         steps.add(new AddInjections(context));
 
-        steps.add(new FlattenSyntax(context));
+       // steps.add(new FlattenSyntax(context));
         steps.add(new ResolveBlockingInput(context, kem));
         steps.add(new InitializeConfigurationStructure(context));
         //steps.add(new AddKStringConversion(context));
@@ -153,9 +158,9 @@ public class JavaSymbolicBackend extends BasicBackend {
         steps.add(new ResolveOpenCells(context));
         steps.add(new ResolveRewrite(context));
 
-        /* data structure related stuff */
+         //data structure related stuff 
         steps.add(new CompileDataStructures(context, kem));
-        steps.add(new JavaBackendCell2DataStructure(context));
+       /* steps.add(new JavaBackendCell2DataStructure(context));
         steps.add(new DataStructureToLookupUpdate(context));
 
         steps.add(new ResolveSupercool(context));
@@ -166,9 +171,8 @@ public class JavaSymbolicBackend extends BasicBackend {
 
         steps.add(new AddLocalRewritesUnderCells(context));
         steps.add(new GenerateKRewriteMachineInstructions(context));
-
-        steps.add(new LastStep(this, context));
-
+        //steps.add(new LastStep(this, context));
+*/
         return steps;
     }
 

@@ -144,9 +144,9 @@ public class KompileFrontEnd extends FrontEnd {
         }
         GetCodeInformation theGetter = new GetCodeInformation(context);
         GlobalElement theElement = theGetter.visit(javaDef);
-        System.out.println("Generated code is:"+((Element)theElement).theMap.toString());
+        //System.out.println("Generated code is:"+((Element)theElement).theMap.toString());
         //System.out.println(step);
-        PrinterToIsabelle printer = new PrinterToIsabelle(context);
+        PrinterToIsabelle printer = new PrinterToIsabelle(context, theElement);
         printer.visit(javaDef, null);
         System.exit(0);
         loader.saveOrDie(files.resolveKompiled("configuration.bin"),

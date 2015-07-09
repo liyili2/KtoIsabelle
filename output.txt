@@ -1,71 +1,87 @@
-Generated code is:{AExp=[Int , Id , AExp "/" AExp , AExp "+" AExp , "(" AExp ")" ], BExp=[Bool , AExp "<=" AExp , "!" BExp , BExp "&&" BExp , "(" BExp ")" ], Pgm=["int" Ids ";" Stmt ], Block=["{" "}" , "{" Stmt "}" ], Ids=[List{Id,","}  ], KResult=[Int , Bool ], Stmt=[Block , Id "=" AExp ";" , "if" "(" BExp ")" Block "else" Block , "while" "(" BExp ")" Block , Stmt Stmt ]}
-DEF: /home/qangel/project/k-unified/imp.k -> IMP
-module IMP
-  configuration <generatedTop> <T color="yellow"> <k color="green"> $PGM:Pgm </k> <state color="red"> .Map  </state>  </T>  </generatedTop>   
-  rule <generatedTop> <T> <k> ! T:Bool ~> GeneratedAnonVar13:K </k> GeneratedAnonVar14:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> notBool T:Bool ~> GeneratedAnonVar13:K </k> GeneratedAnonVar14:Bag </T>  </generatedTop>  [ @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@7d5ef93e)] 
-  rule <generatedTop> <T> <k> #token("#Bool", "false")() && GeneratedAnonVar0:BExp ~> GeneratedAnonVar17:K </k> GeneratedAnonVar18:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> #token("#Bool", "false")()~> GeneratedAnonVar17:K </k> GeneratedAnonVar18:Bag </T>  </generatedTop>  [ @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@1569f8a6)] 
-  rule <generatedTop> <T> <k> #token("#Bool", "true")() && B:BExp ~> GeneratedAnonVar15:K </k> GeneratedAnonVar16:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> B:BExp~> GeneratedAnonVar15:K </k> GeneratedAnonVar16:Bag </T>  </generatedTop>  [ @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@11932248)] 
-  rule <generatedTop> <T> <k> I1:Int + I2:Int ~> GeneratedAnonVar9:K </k> GeneratedAnonVar10:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> I1:Int +Int I2:Int ~> GeneratedAnonVar9:K </k> GeneratedAnonVar10:Bag </T>  </generatedTop>  [ @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@6fcd767a)] 
-  rule <generatedTop> <T> <k> I1:Int / I2:Int ~> GeneratedAnonVar7:K </k> GeneratedAnonVar8:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> I1:Int /Int I2:Int ~> GeneratedAnonVar7:K </k> GeneratedAnonVar8:Bag </T>  </generatedTop>  requires I2:Int =/=Int #token("#Int", "0")()  [ @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@d0c35a8)] 
-  rule <generatedTop> <T> <k> I1:Int <= I2:Int ~> GeneratedAnonVar11:K </k> GeneratedAnonVar12:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> I1:Int <=Int I2:Int ~> GeneratedAnonVar11:K </k> GeneratedAnonVar12:Bag </T>  </generatedTop>  [ @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@78a3a272)] 
-  rule <generatedTop> <T> <k> S1:Stmt S2:Stmt ~> GeneratedAnonVar25:K </k> GeneratedAnonVar26:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> S1:Stmt~> S2:Stmt~> GeneratedAnonVar25:K </k> GeneratedAnonVar26:Bag </T>  </generatedTop>  [ structural(),  @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@28de7e2e)] 
-  rule <generatedTop> <T> <k> X:Id = I:Int ; ~> GeneratedAnonVar23:K </k> <state> org.kframework.kil.MapBuiltin@84d863d5 </state>  </T>  </generatedTop>  => <generatedTop> <T> <k> .K~> GeneratedAnonVar23:K </k> <state> org.kframework.kil.MapBuiltin@89591bcd </state>  </T>  </generatedTop>  [ @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@72a80415)] 
-  rule <generatedTop> <T> <k> X:Id~> GeneratedAnonVar5:K </k> <state> org.kframework.kil.MapBuiltin@e6e5482d </state>  </T>  </generatedTop>  => <generatedTop> <T> <k> I:K~> GeneratedAnonVar5:K </k> <state> org.kframework.kil.MapBuiltin@e6e5482d </state>  </T>  </generatedTop>  [ @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@7d9f0cf4)] 
-  rule <generatedTop> <T> <k> if ( #token("#Bool", "false")() ) GeneratedAnonVar3:Block else S:Block ~> GeneratedAnonVar29:K </k> GeneratedAnonVar30:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> S:Block~> GeneratedAnonVar29:K </k> GeneratedAnonVar30:Bag </T>  </generatedTop>  [ @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@4ea4e0f3)] 
-  rule <generatedTop> <T> <k> if ( #token("#Bool", "true")() ) S:Block else GeneratedAnonVar2:Block ~> GeneratedAnonVar27:K </k> GeneratedAnonVar28:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> S:Block~> GeneratedAnonVar27:K </k> GeneratedAnonVar28:Bag </T>  </generatedTop>  [ @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@3b33b54e)] 
-  rule <generatedTop> <T> <k> int '_,_(X:Id, Xs:Ids) ; GeneratedAnonVar4:Stmt  </k> <state> Rho:Map .Map   </state>  </T>  </generatedTop>  => <generatedTop> <T> <k> int Xs:Ids ; GeneratedAnonVar4:Stmt  </k> <state> Rho:Map X:Id |-> #token("#Int", "0")()   </state>  </T>  </generatedTop>  requires notBool X:Id in keys ( Rho:Map )    [ @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@276af32d)] 
-  rule <generatedTop> <T> <k> int .Ids ; S:Stmt ~> GeneratedAnonVar33:K </k> GeneratedAnonVar34:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> S:Stmt~> GeneratedAnonVar33:K </k> GeneratedAnonVar34:Bag </T>  </generatedTop>  [ structural(),  @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@155ab4b)] 
-  rule <generatedTop> <T> <k> while ( B:BExp ) S:Block ~> GeneratedAnonVar31:K </k> GeneratedAnonVar32:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> if ( B:BExp ) { S:Block while ( B:BExp ) S:Block   }  else { }  ~> GeneratedAnonVar31:K </k> GeneratedAnonVar32:Bag </T>  </generatedTop>  [ structural(),  @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@7c9ecd9e)] 
-  rule <generatedTop> <T> <k> { S:Stmt } ~> GeneratedAnonVar21:K </k> GeneratedAnonVar22:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> S:Stmt~> GeneratedAnonVar21:K </k> GeneratedAnonVar22:Bag </T>  </generatedTop>  [ structural(),  @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@7aa1e86b)] 
-  rule <generatedTop> <T> <k> { } ~> GeneratedAnonVar19:K </k> GeneratedAnonVar20:Bag </T>  </generatedTop>  => <generatedTop> <T> <k> .K~> GeneratedAnonVar19:K </k> GeneratedAnonVar20:Bag </T>  </generatedTop>  [ structural(),  @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@70bc684b)] 
-  rule isKResult('_,_(K:K,, Ks:KList)) => isKResult(Ks:KList) requires isKResult(K:K) [ function(),  @org.kframework.backend.java.kil.JavaBackendRuleData(org.kframework.backend.java.kil.JavaBackendRuleData@6e3f38c1)] 
-  syntax AExp ::= "(" AExp ")" 
- 
-  syntax AExp ::= AExp "+" AExp 
- 
-  syntax AExp ::= AExp "/" AExp 
- 
-  syntax AExp ::= Id 
- 
-  syntax AExp ::= Int 
- 
-  syntax BExp ::= "!" BExp 
- 
-  syntax BExp ::= "(" BExp ")" 
- 
-  syntax BExp ::= AExp "<=" AExp 
- 
-  syntax BExp ::= BExp "&&" BExp 
- 
-  syntax BExp ::= Bool 
- 
-  syntax Block ::= "{" "}" 
- 
-  syntax Block ::= "{" Stmt "}" 
- 
-  syntax Ids ::= List{Id,","}  
- 
-  syntax KResult ::= Bool 
- 
-  syntax KResult ::= Int 
- 
-  syntax Pgm ::= "int" Ids ";" Stmt 
- 
-  syntax Stmt ::= "if" "(" BExp ")" Block "else" Block 
- 
-  syntax Stmt ::= "while" "(" BExp ")" Block 
- 
-  syntax Stmt ::= Block 
- 
-  syntax Stmt ::= Id "=" AExp ";" 
- 
-  syntax Stmt ::= Stmt Stmt 
- 
-/* AExp*/ 
-/* BExp*/ 
-/* Block*/ 
-/* Pgm*/ 
-/* Stmt*/ 
+theory Imp
+imports Main
+begin
 
-endmodule 
+datatype AExp = 
+ Value0 int | Id Int | '_/_ AExp AExp | '_+_ AExp AExp | '(_) AExp | AExpHole 
+datatype BExp = 
+ Value1 bool | '_<=_ AExp AExp | '!_ BExp | '_&&_ BExp BExp | '(_) BExp | BExpHole 
+datatype Pgm = 
+ 'int_;_ Ids Stmt | PgmHole 
+datatype Block = 
+ '{} | '{_} Stmt | BlockHole 
+datatype Ids = 
+ '_,_ | IdsHole 
+datatype Stmt = 
+ Stmt2 Block| '_=_; Id AExp | 'if(_)_else_ BExp Block Block | 'while(_)_ BExp Block | '__ Stmt Stmt | StmtHole 
+datatype KItem =  AExpKItem | BExpKItem | PgmKItem | BlockKItem | IdsKItem | StmtKItem 
+type_synonym 'var K = "'var kItem list"
+ datatype GeneratedLabel =  GENERATEDTOP | T | STATE | K 
+inductive impTheRule where
+rule0: " impTheRule (GENERATEDTOP, (T, (K, (X:Id # GeneratedAnonVar5:K)) # 
+(STATE, ('_Map_ ('_|->_ X:Id I:K) 
+GeneratedAnonVar6:Map)
+))) (GENERATEDTOP, (T, (K, (I:K # GeneratedAnonVar5:K)) # 
+(STATE, ('_Map_ ('_|->_ X:Id I:K) 
+GeneratedAnonVar6:Map)
+)))"
+| rule1: " ('_=/=Int_ I2:Int ( 0 )
+)  \<Longrightarrow> 
+ impTheRule (GENERATEDTOP, (T, (K, (('_/_ I1:Int I2:Int) # GeneratedAnonVar7:K)) # 
+GeneratedAnonVar8:Bag)) (GENERATEDTOP, (T, (K, (('_/Int_ I1:Int I2:Int) # GeneratedAnonVar7:K)) # 
+GeneratedAnonVar8:Bag))"
+| rule2: " impTheRule (GENERATEDTOP, (T, (K, (('_+_ I1:Int I2:Int) # GeneratedAnonVar9:K)) # 
+GeneratedAnonVar10:Bag)) (GENERATEDTOP, (T, (K, (('_+Int_ I1:Int I2:Int) # GeneratedAnonVar9:K)) # 
+GeneratedAnonVar10:Bag))"
+| rule3: " impTheRule (GENERATEDTOP, (T, (K, (('_<=_ I1:Int I2:Int) # GeneratedAnonVar11:K)) # 
+GeneratedAnonVar12:Bag)) (GENERATEDTOP, (T, (K, (('_<=Int_ I1:Int I2:Int) # GeneratedAnonVar11:K)) # 
+GeneratedAnonVar12:Bag))"
+| rule4: " impTheRule (GENERATEDTOP, (T, (K, (('!_ T:Bool) # GeneratedAnonVar13:K)) # 
+GeneratedAnonVar14:Bag)) (GENERATEDTOP, (T, (K, (('notBool_ T:Bool) # GeneratedAnonVar13:K)) # 
+GeneratedAnonVar14:Bag))"
+| rule5: " impTheRule (GENERATEDTOP, (T, (K, (('_&&_ ( False )
+ B:BExp) # GeneratedAnonVar15:K)) # 
+GeneratedAnonVar16:Bag)) (GENERATEDTOP, (T, (K, (B:BExp # GeneratedAnonVar15:K)) # 
+GeneratedAnonVar16:Bag))"
+| rule6: " impTheRule (GENERATEDTOP, (T, (K, (('_&&_ ( False )
+ GeneratedAnonVar0:BExp) # GeneratedAnonVar17:K)) # 
+GeneratedAnonVar18:Bag)) (GENERATEDTOP, (T, (K, (( False )
+ # GeneratedAnonVar17:K)) # 
+GeneratedAnonVar18:Bag))"
+| rule7: " impTheRule (GENERATEDTOP, (T, (K, (('{}) # GeneratedAnonVar19:K)) # 
+GeneratedAnonVar20:Bag)) (GENERATEDTOP, (T, (K, ([])) # 
+GeneratedAnonVar20:Bag))"
+| rule8: " impTheRule (GENERATEDTOP, (T, (K, (('{_} S:Stmt) # GeneratedAnonVar21:K)) # 
+GeneratedAnonVar22:Bag)) (GENERATEDTOP, (T, (K, (S:Stmt # GeneratedAnonVar21:K)) # 
+GeneratedAnonVar22:Bag))"
+| rule9: " impTheRule (GENERATEDTOP, (T, (K, (('_=_; X:Id I:Int) # GeneratedAnonVar23:K)) # 
+(STATE, ('_Map_ ('_|->_ X:Id GeneratedAnonVar1:K) 
+GeneratedAnonVar24:Map)
+))) (GENERATEDTOP, (T, (K, ([])) # 
+(STATE, ('_Map_ ('_|->_ X:Id I:Int) 
+GeneratedAnonVar24:Map)
+)))"
+| rule10: " impTheRule (GENERATEDTOP, (T, (K, (('__ S1:Stmt S2:Stmt) # GeneratedAnonVar25:K)) # 
+GeneratedAnonVar26:Bag)) (GENERATEDTOP, (T, (K, ((S1:Stmt # S2:Stmt) # GeneratedAnonVar25:K)) # 
+GeneratedAnonVar26:Bag))"
+| rule11: " impTheRule (GENERATEDTOP, (T, (K, (('if(_)_else_ ( False )
+ S:Block GeneratedAnonVar2:Block) # GeneratedAnonVar27:K)) # 
+GeneratedAnonVar28:Bag)) (GENERATEDTOP, (T, (K, (S:Block # GeneratedAnonVar27:K)) # 
+GeneratedAnonVar28:Bag))"
+| rule12: " impTheRule (GENERATEDTOP, (T, (K, (('if(_)_else_ ( False )
+ GeneratedAnonVar3:Block S:Block) # GeneratedAnonVar29:K)) # 
+GeneratedAnonVar30:Bag)) (GENERATEDTOP, (T, (K, (S:Block # GeneratedAnonVar29:K)) # 
+GeneratedAnonVar30:Bag))"
+| rule13: " impTheRule (GENERATEDTOP, (T, (K, (('while(_)_ B:BExp S:Block) # GeneratedAnonVar31:K)) # 
+GeneratedAnonVar32:Bag)) (GENERATEDTOP, (T, (K, (('if(_)_else_ B:BExp ('{_} ('__ S:Block ('while(_)_ B:BExp S:Block))) ('{})) # GeneratedAnonVar31:K)) # 
+GeneratedAnonVar32:Bag))"
+| rule14: " ('notBool_ ('_in_ X:Id ('keys(_) Rho:Map)))  \<Longrightarrow> 
+ impTheRule (GENERATEDTOP, (T, (K, ('int_;_ ('_,_ X:Id Xs:Ids) GeneratedAnonVar4:Stmt)) # 
+(STATE, ('__ Rho:Map ('.Map))))) (GENERATEDTOP, (T, (K, ('int_;_ Xs:Ids GeneratedAnonVar4:Stmt)) # 
+(STATE, ('__ Rho:Map ('_|->_ X:Id ( 0 )
+)))))"
+| rule15: " impTheRule (GENERATEDTOP, (T, (K, (('int_;_ [] S:Stmt) # GeneratedAnonVar33:K)) # 
+GeneratedAnonVar34:Bag)) (GENERATEDTOP, (T, (K, (S:Stmt # GeneratedAnonVar33:K)) # 
+GeneratedAnonVar34:Bag))"
 
+end

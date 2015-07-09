@@ -3,7 +3,7 @@ module IMP
                  | AExp "/" AExp              [left, strict]
                  > AExp "+" AExp              [left, strict]
                  | "(" AExp ")"               [bracket]
-  syntax BExp  ::= Bool
+  syntax BExp  ::= Bool | Id
                  | AExp "<=" AExp             [seqstrict, latex({#1}\leq{#2})]
                  | "!" BExp                   [strict]
                  > BExp "&&" BExp             [left, strict(1)]

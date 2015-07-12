@@ -33,6 +33,7 @@ import org.kframework.kil.ProductionItem;
 import org.kframework.kil.Rewrite;
 import org.kframework.kil.Rule;
 import org.kframework.kil.SetBuiltin;
+import org.kframework.kil.Sort;
 import org.kframework.kil.StringBuiltin;
 import org.kframework.kil.Term;
 import org.kframework.kil.TermCons;
@@ -139,57 +140,68 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 		ArrayList<NonTerminal> termList
             = new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
         for(NonTerminal item : termList){
-	        System.out.println("datatype "+item.getName()+" = ");
-	        for(int i = 0; i < ((List<Production>)
-		        	(((Element)this.theElement).theMap.get(item))).size(); ++i){
-	    	    Production t = ((List<Production>)
-			        	(((Element)this.theElement).theMap.get(item))).get(i);
-	    	     if(t.getKLabel() == null && t.getItems().size() == 1){
-	    		    if(t.getItems().get(0) instanceof NonTerminal){
-	    		    	if(((NonTerminal)t.getItems().get(0)).getName().equals("Int")
-	    			    		|| ((NonTerminal)t.getItems().get(0))
-	    			    		.getName().equals("Bool")){
-	    				    if(resultMap.keySet().contains(((NonTerminal)t.getItems().get(0)))){
-	    				    	if(resultMap.get(((NonTerminal)t.getItems().get(0))) == null){
-	    				    		resultMap
-	    				    		.put(((NonTerminal)t.getItems().get(0)), "Value"+this.varCounter);
-	    				    	}
-	    					    System.out.print(" Value"+this.varCounter+" ");
-	    				    } else {
-	    				    	System.out.print(" "+item.getName()+this.varCounter+" ");
-	    				    }
-			    		    this.varCounter++;
-		    			    System.out.print(((NonTerminal)t.getItems().get(0))
-		    			    		.getName().toLowerCase()+" ");
-	    			     } else if(((NonTerminal)t.getItems().get(0))
-	    			    		.getName().equals("Id")){
-	    				    System.out.print(" Id Int ");
-	    			    } else {
-	    				    if(resultMap.keySet().contains(((NonTerminal)t.getItems().get(0)))){
-	    				    	if(resultMap.get(((NonTerminal)t.getItems().get(0))) == null){
-	    				    		resultMap
-	    				    		.put(((NonTerminal)t.getItems().get(0)), "Value"+this.varCounter);
-	    				    	}
-	    					     System.out.print(" Value"+this.varCounter+" ");
-	    				     } else {
-	    					     System.out.print(" "+item.getName()+this.varCounter+" ");
-	    				      }
-			    		      this.varCounter++;
-		    			    System.out.print(((NonTerminal)t.getItems().get(0)).getName());
-	    			    }
-	    		    }
-	    	    } else {
-	    		    System.out.print(" "+t.getKLabel().toString()+" ");
-		            for (int i1 = 0; i1 < t.getItems().size(); ++i1) {
-		                if (((ProductionItem) t.getItems().get(i1) instanceof NonTerminal)) {
-		                	System.out.print(((NonTerminal) t.getItems().get(i1)).getName()+" ");
-		                }
-		            }
-	    	    }
-		        System.out.print("|");
-		    }
-	        System.out.print(" "+item.getName()+"Hole ");
-	        System.out.println();
+        	
+        	if(((List<Production>)
+		        	(((Element)this.theElement).theMap.get(item))).size() == 1
+		        	&& ((List<Production>)
+				        	(((Element)this.theElement).theMap.get(item))).get(0).isListDecl()){
+        		System.out.println("type_synonym "+item.getName()+" = ");
+        		System.out.println("\""+((UserList)(((List<Production>)
+    		        	(((Element)this.theElement).theMap.get(item)))
+    		        	.get(0).getListDecl())).getSort()+" list\"");
+        	} else {
+    	        System.out.print("datatype "+item.getName()+" = ");
+    	        for(int i = 0; i < ((List<Production>)
+    		        	(((Element)this.theElement).theMap.get(item))).size(); ++i){
+    	    	    Production t = ((List<Production>)
+    			        	(((Element)this.theElement).theMap.get(item))).get(i);
+    	    	     if(t.getKLabel() == null && t.getItems().size() == 1){
+    	    		    if(t.getItems().get(0) instanceof NonTerminal){
+    	    		    	if(((NonTerminal)t.getItems().get(0)).getName().equals("Int")
+    	    			    		|| ((NonTerminal)t.getItems().get(0))
+    	    			    		.getName().equals("Bool")){
+    	    				    if(resultMap.keySet().contains(((NonTerminal)t.getItems().get(0)))){
+    	    				    	if(resultMap.get(((NonTerminal)t.getItems().get(0))) == null){
+    	    				    		resultMap
+    	    				    		.put(((NonTerminal)t.getItems().get(0)), "Value"+this.varCounter);
+    	    				    	}
+    	    					    System.out.print(" Value"+this.varCounter+" ");
+    	    				    } else {
+    	    				    	System.out.print(" "+item.getName()+this.varCounter+" ");
+    	    				    }
+    			    		    this.varCounter++;
+    		    			    System.out.print(((NonTerminal)t.getItems().get(0))
+    		    			    		.getName().toLowerCase()+" ");
+    	    			     } else if(((NonTerminal)t.getItems().get(0))
+    	    			    		.getName().equals("Id")){
+    	    				    System.out.print(" "+item.getName()+" Id ");
+    	    			    } else {
+    	    				    if(resultMap.keySet().contains(((NonTerminal)t.getItems().get(0)))){
+    	    				    	if(resultMap.get(((NonTerminal)t.getItems().get(0))) == null){
+    	    				    		resultMap.put(((NonTerminal)t.getItems().get(0))
+    	    				    				, "Value"+this.varCounter);
+    	    				    	}
+    	    					     System.out.print(" Value"+this.varCounter+" ");
+    	    				     } else {
+    	    					     System.out.print(" "+item.getName()+this.varCounter+" ");
+    	    				      }
+    			    		      this.varCounter++;
+    		    			    System.out.print(((NonTerminal)t.getItems().get(0)).getName()+" ");
+    	    			    }
+    	    		    }
+    	    	    } else {
+    	    		    System.out.print(" "+this.generateName(t.getKLabel().toString())+" ");
+    		            for (int i1 = 0; i1 < t.getItems().size(); ++i1) {
+    		                if (((ProductionItem) t.getItems().get(i1) instanceof NonTerminal)) {
+    		                	System.out.print(((NonTerminal) t.getItems().get(i1)).getName()+" ");
+    		                }
+    		            }
+    	    	    }
+    		        System.out.print("|");
+    		    }
+    	        System.out.print(" "+item.getName()+"Hole ");
+    	        System.out.println();
+            }
         }
     }
     
@@ -198,13 +210,12 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 		ArrayList<NonTerminal> termList
         = new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
         for(int i = 0; i < termList.size(); ++i){
-        	System.out.print(" "+termList.get(i).getName()+"KItem ");
-        	if(i != termList.size() - 1){
-        		System.out.print("|");
-        	}
+        	System.out.print(" "+termList.get(i).getName()+"KItem "
+                                           +termList.get(i).getName()+" ");
+            System.out.print("|");
         }
-        System.out.println();
-        System.out.println("type_synonym 'var K = \"'var kItem list\"");
+        System.out.println(" IdKItem Id");
+        System.out.println("type_synonym K = \"kItem list\"");
     }
     
     private void generateCellLabels(Cell t){
@@ -225,11 +236,84 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     		}
     	}
     }
+    
+    private void printCellDatatype(){
+        System.out.print("datatype CellName = ");
+        ArrayList<String> labelTempList = new ArrayList<String>(this.labelSet);
+        for(int i = 0; i < labelTempList.size(); ++i){
+        	System.out.print(" "+labelTempList.get(i)+" ");
+        	if(i != labelTempList.size() - 1){
+        		System.out.print("|");
+        	}
+        }
+        System.out.println("datatype Cell = BagCell CellName Cell |"
+        		+"KCell CellName K | MapCell CellName Map");
+        System.out.println("type_synonym Bag = \"Cell list\"");
+    }
+    
+    private String generateName(String t){
+    	
+    	String value = "";
+    	for(int i = 0; i < t.length(); ++i) {
+    		if(t.charAt(i) == '\''){
+    			if(i != 0) {
+    				value += "Top";
+    			}
+    		} else if (t.charAt(i) == '_') {
+    			value += "X";
+    		} else if(t.charAt(i) == '(' || t.charAt(i) == ')') {
+    			value += "Br";
+    		} else if(t.charAt(i) == '{' || t.charAt(i) == '}') {
+    			value += "Bl";
+    		} else if(t.charAt(i) == '[' || t.charAt(i) == ']') {
+    			value += "Bm";
+    		} else if(t.charAt(i) == '=') {
+    			value += "Eq";
+    		} else if(t.charAt(i) == '|') {
+    			value += "Sl";
+    		} else if(t.charAt(i) == '&') {
+    			value += "An";
+    		} else if(t.charAt(i) == '@') {
+    			value += "At";
+    		} else if(t.charAt(i) == '*') {
+    			value += "Times";
+    		} else if(t.charAt(i) == '+') {
+    			value += "Plus";
+    		} else if(t.charAt(i) == '-') {
+    			value += "Minus";
+    		} else if(t.charAt(i) == '/') {
+    			value += "Div";
+    		} else if(t.charAt(i) == '<') {
+    			value += "Less";
+    		} else if(t.charAt(i) == '>') {
+    			value += "Greater";
+    		} else if(t.charAt(i) == '!') {
+    			value += "Not";
+    		} else if(t.charAt(i) == ';') {
+    			value += "End";
+    		} else if(t.charAt(i) == ':') {
+    			value += "To";
+    		} else {
+    			value += t.charAt(i);
+    		}
+    	}
+    	if(value.length() >= 1) {
+    		if(value.charAt(0) <= 'z' && value.charAt(0) >= 'a') {
+    			value = value.substring(0, 1).toUpperCase()
+    					+ value.substring(1, value.length());
+    		} else if(value.charAt(0) <= '9' && value.charAt(0) >= '0'){
+    			value = "Num"+value;
+    		}
+    	}
+    	return value;
+    }
 
     
     public Void visit(Module mod, Void _void) {
         System.out.println("theory "+mod.getName().toUpperCase()+"\nimports Main");
         System.out.println("begin\n");
+        
+        System.out.println("datatype Id = TheId string");
         printDatatype();
         printKItem();
         this.inductiveName = mod.getName().toLowerCase();
@@ -248,14 +332,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         }
         
         //print out the label set labels as a datatype
-        System.out.print(" datatype GeneratedLabel = ");
-        ArrayList<String> labelTempList = new ArrayList<String>(this.labelSet);
-        for(int i = 0; i < labelTempList.size(); ++i){
-        	System.out.print(" "+labelTempList.get(i)+" ");
-        	if(i != labelTempList.size() - 1){
-        		System.out.print("|");
-        	}
-        }
+        printCellDatatype();
         
         System.out.println();
         System.out.println("inductive "+this.inductiveName+"TheRule where");
@@ -282,14 +359,19 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         else if (variable.isFreshConstant())
         	System.out.print("!");
         System.out.print(variable.getName());
-        System.out.print("::" + variable.getSort());
+        if(variable.getSort().equals(Sort.INT)
+        		|| variable.getSort().equals(Sort.STRING)
+        		|| variable.getSort().equals(Sort.BOOL)){
+        	System.out.println("::"+variable.getSort().getName().toLowerCase());
+        }
+        System.out.print("::" + variable.getSort().toString());
         System.out.print(")");
         return null;
     }
     
     public Void visit(Rewrite rewrite, Void _void) {
         this.visit(rewrite.getLeft(), _void);
-        System.out.print(" ");
+        System.out.println();
     	this.visit(rewrite.getRight(), _void);
     	return null;
     }
@@ -376,7 +458,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     }
     
     public Void visit(KLabelConstant kLabelConstant, Void _void) {
-        System.out.print(kLabelConstant.getLabel());
+        System.out.print(this.generateName(kLabelConstant.getLabel()));
         return null;
     }
     
@@ -467,7 +549,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
             UserList userList = (UserList) production.getItems().get(0);
             String separator = "'_"+userList.getSeparator()+"_";
             java.util.List<Term> contents = termCons.getContents();
-            System.out.print("("+separator+" ");
+            System.out.print("("+this.generateName(separator)+" ");
             this.visit(contents.get(0), _void);
             System.out.print(" ");
             this.visit(contents.get(1), _void);
@@ -487,7 +569,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
                 	label += ((Terminal) productionItem).getTerminal();
                 }
             }
-            System.out.print("("+label);
+            System.out.print("("+this.generateName(label));
             for(int i = 0; i < termList.size(); ++i){
             	System.out.print(" ");
             	this.visit(termList.get(i), _void);

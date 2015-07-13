@@ -13,6 +13,7 @@ import org.kframework.kil.BoolBuiltin;
 import org.kframework.kil.Cell;
 import org.kframework.kil.Collection;
 import org.kframework.kil.Configuration;
+import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.Definition;
 import org.kframework.kil.DefinitionItem;
 import org.kframework.kil.FloatBuiltin;
@@ -55,6 +56,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 	Map<NonTerminal, String> resultMap;
 	Set<String> labelSet;
 	String inductiveName = "";
+	Set<String> builtinLabelSet;
 	
 	public PrinterToIsabelle(Context context) {
 		super(context);
@@ -80,6 +82,52 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 				((Element)this.theElement).theMap.remove(n);
 			}
 		}
+		
+		builtinLabelSet = new HashSet<String>();
+		builtinLabelSet.add("'_+Int_");
+		builtinLabelSet.add("'_*Int_");
+		builtinLabelSet.add("'_-Int_");
+		builtinLabelSet.add("'_%Int_");
+		builtinLabelSet.add("'_divInt_");
+		builtinLabelSet.add("'_modInt_");
+		builtinLabelSet.add("'~Int_");
+		builtinLabelSet.add("'_<=Int_");
+		builtinLabelSet.add("'_<Int_");
+		builtinLabelSet.add("'_>Int_");
+		builtinLabelSet.add("'_>=Int_");
+		builtinLabelSet.add("'_==Int_");
+		builtinLabelSet.add("'_=/=Int_");
+		builtinLabelSet.add("'notBool_");
+		builtinLabelSet.add("'_andBool_");
+		builtinLabelSet.add("'_andThenBool_");
+		builtinLabelSet.add("'_xorBool_");
+		builtinLabelSet.add("'_orBool_");
+		builtinLabelSet.add("'_orElseBool_");
+		builtinLabelSet.add("'_impliesBool_");
+		builtinLabelSet.add("'_==Bool_");
+		builtinLabelSet.add("'_=/=Bool_");
+		builtinLabelSet.add("'_+String_");
+		builtinLabelSet.add("'_==String_");
+		builtinLabelSet.add("'_=/=String_");
+		builtinLabelSet.add("'lengthString");
+		builtinLabelSet.add("'substrString");
+		builtinLabelSet.add("'Float2String");
+		builtinLabelSet.add("'String2Float");
+		builtinLabelSet.add("'String2Int");
+		builtinLabelSet.add("'Int2String");
+		builtinLabelSet.add("'--Float_");
+		builtinLabelSet.add("'_^Float_");
+		builtinLabelSet.add("'_*Float_");
+		builtinLabelSet.add("'_+Float_");
+		builtinLabelSet.add("'_-Float_");
+		builtinLabelSet.add("'_/Float_");
+		//builtinLabelSet.add("'_%Float_");
+		builtinLabelSet.add("'_<=Float_");
+		builtinLabelSet.add("'_<Float_");
+		builtinLabelSet.add("'_>Float_");
+		builtinLabelSet.add("'_>=Float_");
+		builtinLabelSet.add("'_==Float_");
+		builtinLabelSet.add("'_=/=Float_");
 	}
 	
 	private String getGenVar(){
@@ -145,7 +193,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 		        	(((Element)this.theElement).theMap.get(item))).size() == 1
 		        	&& ((List<Production>)
 				        	(((Element)this.theElement).theMap.get(item))).get(0).isListDecl()){
-        		System.out.println("type_synonym "+item.getName()+" = ");
+        		System.out.print("type_synonym "+item.getName()+" = ");
         		System.out.println("\""+((UserList)(((List<Production>)
     		        	(((Element)this.theElement).theMap.get(item)))
     		        	.get(0).getListDecl())).getSort()+" list\"");
@@ -246,8 +294,10 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         		System.out.print("|");
         	}
         }
+        System.out.println();
         System.out.println("datatype Cell = BagCell CellName Cell |"
-        		+"KCell CellName K | MapCell CellName Map");
+        		+"KCell CellName K | MapCell CellName Map "
+        		+"| SetCell CellName Set | ListCell CellName List");
         System.out.println("type_synonym Bag = \"Cell list\"");
     }
     
@@ -314,6 +364,16 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         System.out.println("begin\n");
         
         System.out.println("datatype Id = TheId string");
+        System.out.println("datatype MapItem = Mapsto KItem K");
+        System.out.println("type_synonym Map = \"MapItem list\"");
+        System.out.println("datatype SetElem = SetItem K");
+        System.out.println("type_synonym Set = \"SetElem list\"");
+        System.out.println("datatype ListElem = ListItem K");
+        System.out.println("type_synonym List = \"ListElem list\"");
+        System.out.println("definition xor :: \"bool \\<Rightarrow> bool \\<Rightarrow> bool\""
+        		+"(infixl \"[+]\" 60)");
+        System.out.println("where \"A [+] B \\<equiv>"
+        		+"(A \\<and> \\<not> B) \\<or> (\\<not> A \\<and> B)\"");
         printDatatype();
         printKItem();
         this.inductiveName = mod.getName().toLowerCase();
@@ -363,8 +423,9 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         		|| variable.getSort().equals(Sort.STRING)
         		|| variable.getSort().equals(Sort.BOOL)){
         	System.out.println("::"+variable.getSort().getName().toLowerCase());
+        } else {
+            System.out.print("::" + variable.getSort().toString());
         }
-        System.out.print("::" + variable.getSort().toString());
         System.out.print(")");
         return null;
     }
@@ -396,27 +457,27 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
-    public Void visit(Collection collection, Void _void) {
-        java.util.List<Term> contents = collection.getContents();
-        for (int i = 0; i < contents.size(); ++i) {
-            this.visit(contents.get(i), _void);
-        }
-        if (contents.size() == 0) {
-            System.out.print("[]");
-        }
-        return null;
-    }
-    
     public Void visit(Cell cell, Void _void) {
-        System.out.print("(" + cell.getLabel().toUpperCase()+", ");
-        if (cell.hasLeftEllipsis()) {
-            System.out.print(this.getGenVar()+"# ");
-        }
+    	String value = "(";
+    	if(cell.getContents() instanceof Cell
+    			|| cell.getContents() instanceof Bag){
+    		value += "BagCell " + cell.getLabel().toUpperCase()+" (";
+    	} else if(cell.getContents().getSort().equals(Sort.MAP)){
+    		value += "MapCell " + cell.getLabel().toUpperCase()+" (";
+    	} else if(cell.getContents().getSort().equals(Sort.LIST)){
+    		value += "ListCell " + cell.getLabel().toUpperCase()+" (";
+    	} else if(cell.getContents().getSort().equals(Sort.SET)){
+    		value += "SetCell " + cell.getLabel().toUpperCase()+" (";
+    	}
+        System.out.print(value);
+        //if (cell.hasLeftEllipsis()) {
+        //    System.out.print(this.getGenVar()+"# ");
+        //}
         this.visit(cell.getContents(), _void);
-        if (cell.hasRightEllipsis()) {
-            System.out.print(" #"+this.getGenVar());
-        }
-        System.out.print(")");
+        //if (cell.hasRightEllipsis()) {
+         //   System.out.print(" #"+this.getGenVar());
+        //}
+        System.out.print("))");
         return null;
     }
     
@@ -426,6 +487,19 @@ public class PrinterToIsabelle extends NonCachingVisitor {
             if(i != bag.getContents().size() - 1){
             	System.out.println(" # ");
             }
+        }
+        if (bag.getContents().size() == 0) {
+            System.out.print("[]");
+        } else if(!((bag.getContents().get(bag.getContents().size() - 1) instanceof Bag &&
+        		((Bag)bag.getContents()).getContents().size() == 0) ||
+        		(bag.getContents().get(bag.getContents().size() - 1) instanceof Variable &&
+        				((Variable)bag.getContents().get(bag.getContents().size() - 1))
+        				.getSort().equals(Sort.BAG)) ||
+        				(bag.getContents().get(bag.getContents().size() - 1) instanceof Cell
+        	&& ((Cell)bag.getContents().get(bag.getContents().size() - 1)).getContents() instanceof Variable
+        	&& ((Variable)((Cell)bag.getContents().get(bag.getContents().size() - 1))
+        			.getContents()).getSort().equals(Sort.BAG)))){
+        	System.out.println(" # []");
         }
         return null;
     }
@@ -446,14 +520,28 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     
     public Void visit(KApp kapp, Void _void) {
     	System.out.print("(");
-        this.visit(kapp.getLabel(), _void);
-        if (!(kapp.getLabel() instanceof Token) && !(kapp.getLabel() instanceof KInjectedLabel)) {
-            System.out.print(" ");
-            this.visit(kapp.getChild(), _void);
-            System.out.println(")");
-        } else {
-        	System.out.println(")");
-        }
+    	if(kapp.getLabel() instanceof KLabelConstant
+    			&& ((KLabelConstant)kapp.getLabel()).getLabel()
+    			.equals(DataStructureSort.DEFAULT_MAP_LABEL)){
+    		if(kapp.getChild() instanceof KList){
+    			for(int i = 0; i< ((KList)kapp.getChild())
+    					.getContents().size(); ++i){
+    				this.visit((Term) ((KList)kapp.getChild())
+        					.getContents().get(i), _void);
+    				if(i != ((KList)kapp.getChild())
+    					.getContents().size() - 1){
+    					System.out.print(" # ");
+    				}
+    			}
+    		}
+    	} else {
+            this.visit(kapp.getLabel(), _void);
+            if (!(kapp.getLabel() instanceof Token) && !(kapp.getLabel() instanceof KInjectedLabel)) {
+                System.out.print(" ");
+                this.visit(kapp.getChild(), _void);
+            }
+    	}
+        System.out.println(")");
         return null;
     }
     
@@ -543,6 +631,152 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    private void dealWithBuiltins(ArrayList<Term> termList, String label, Void p){
+    	if(label.equals("'_+Int_") || label.equals("'_+Float_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" + ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_-Int_") || label.equals("'_-Float_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" - ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_*Int_") || label.equals("'_*Float_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" * ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_/Int_") || label.equals("'_divInt_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" div ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_%Int_") || label.equals("'_modInt_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" mod ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'~Int_") || label.equals("'--Float_")){
+    		System.out.println("(");
+    		System.out.println("- ");
+    		this.visit(termList.get(0), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_<=Int_") || label.equals("'_<=Float_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" \\<le> ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_<Int_") || label.equals("'_<Float_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" < ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_>Int_") || label.equals("'_>Float_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" > ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_>=Int_") || label.equals("'_>=Float_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" \\<ge> ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_==Int_") || label.equals("'_==Bool_")
+    			|| label.equals("'_==String_") || label.equals("'_==Float_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" = ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_=/=Int_") || label.equals("'_=/=Bool_")
+    			|| label.equals("'_=/=String_") || label.equals("'_=/=Float_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" \\<noteq> ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'notBool_")){
+    		System.out.println("(");
+    		System.out.println(" \\<not> ");
+    		this.visit(termList.get(0), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_andBool_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" \\<and> ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_andThenBool_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" \\<and> ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_xorBool_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" [+] ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_orElseBool_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" \\<or> ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_impliesBool_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" \\<longrightarrow> ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_+String_")){
+    		System.out.println("(concat [");
+    		this.visit(termList.get(0), p);
+    		System.out.println(", ");
+    		this.visit(termList.get(1), p);
+    		System.out.println("])");
+    	} else if(label.equals("'lengthString")){
+    		System.out.println("(length ");
+    		this.visit(termList.get(0), p);
+    		System.out.println(")");
+    	} else if(label.equals("'substrString")){
+    		System.out.println("(sublist ");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" {");
+    		this.visit(termList.get(1), p);
+    		System.out.println(" .. ");
+    		this.visit(termList.get(2), p);
+    		System.out.println("})");
+    	} else if(label.equals("'String2Int")){
+    		System.out.println("(length ");
+    		this.visit(termList.get(0), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_^Float_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" ^ ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_/Float_")){
+    		System.out.println("(");
+    		this.visit(termList.get(0), p);
+    		System.out.println(" / ");
+    		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	}
+    }
+    
     public Void visit(TermCons termCons, Void _void) {
         Production production = termCons.getProduction();
         if (production.isListDecl()) {
@@ -558,23 +792,68 @@ public class PrinterToIsabelle extends NonCachingVisitor {
             int where = 0;
             String label = "'";
             ArrayList<Term> termList = new ArrayList<Term>();
+            Term lastVar = null;
             for (int i = 0; i < production.getItems().size(); ++i) {
                 ProductionItem productionItem = (ProductionItem) production.getItems().get(i);
                 if (!(productionItem instanceof Terminal)) {
                     Term subterm = (Term) termCons.getContents().get(where);
-                    termList.add(subterm);
+                    if(termCons.getSort().equals(Sort.MAP) 
+                    		&& (subterm instanceof Variable)){
+                    	lastVar = subterm;
+                    } else {
+                        termList.add(subterm);
+                    }
                     label += "_";
                     where++;
                 } else {
                 	label += ((Terminal) productionItem).getTerminal();
                 }
             }
-            System.out.print("("+this.generateName(label));
-            for(int i = 0; i < termList.size(); ++i){
-            	System.out.print(" ");
-            	this.visit(termList.get(i), _void);
+            
+            if(lastVar != null){
+            	termList.add(lastVar);
             }
-            System.out.print(")");
+            
+            if(this.builtinLabelSet.contains(label)){
+            	dealWithBuiltins(termList,label, _void);
+            } else if(termCons.getSort().equals(Sort.MAP)) {
+            	if(label.equals("'__")) {
+            		System.out.print("(");
+            		for(int i = 0; i < termList.size(); ++i){
+            			if(!(lastVar != null && termList.get(i) instanceof TermCons
+            					&& ((TermCons)termList.get(i)).getSort().equals(Sort.MAP)
+            					&& ((TermCons)termList.get(i)).getProduction()
+            					.getKLabel().equals(DataStructureSort.DEFAULT_MAP_UNIT_LABEL))){
+            				this.visit(termList.get(i), _void);
+            				if(i != termList.size() - 1){
+                        		System.out.println(" # ");
+                        	}
+            			}
+                    }
+                    if(termList.size() == 0){
+                    	System.out.print("[]");
+                    }
+                    System.out.print(")");
+            	} else if(label.equals(DataStructureSort.DEFAULT_MAP_UNIT_LABEL)) {
+            		System.out.println("[]");
+            	} else if(label.equals(DataStructureSort.DEFAULT_MAP_ITEM_LABEL)){
+            		System.out.print("(");
+            		System.out.println("Mapsto");
+                    for(int i = 0; i < termList.size(); ++i){
+                    	System.out.print(" ");
+                    	this.visit(termList.get(i), _void);
+                    }
+                    System.out.print(")");
+            	}
+            } else {
+            	System.out.print("("+this.generateName(label));
+                for(int i = 0; i < termList.size(); ++i){
+                	System.out.print(" ");
+                	this.visit(termList.get(i), _void);
+                }
+                System.out.print(")");
+
+            }
         }
         return null;
     }

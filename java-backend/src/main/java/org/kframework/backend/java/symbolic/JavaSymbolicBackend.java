@@ -28,6 +28,7 @@ import org.kframework.kil.loader.CollectBracketsVisitor;
 import org.kframework.kil.loader.CollectProductionsVisitor;
 import org.kframework.kil.loader.CollectSubsortsVisitor;
 import org.kframework.kil.loader.Context;
+import org.kframework.kompile.GeneratedHeatingCoolingRules;
 import org.kframework.kompile.KompileOptions;
 import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
@@ -114,7 +115,7 @@ public class JavaSymbolicBackend extends BasicBackend {
         steps.add(new CheckVisitorStep<Definition>(new CollectSubsortsVisitor(context), context));
         steps.add(new CheckVisitorStep<Definition>(new CollectBracketsVisitor(context), context));
 
-        //steps.add(new StrictnessToContexts(context));
+        steps.add(new GeneratedHeatingCoolingRules(context));
         
        // steps.add(new FreezeUserFreezers(context));
         //steps.add(new ContextsToHeating(context));

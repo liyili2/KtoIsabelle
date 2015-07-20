@@ -1,5 +1,8 @@
 package org.kframework.kompile;
 
+import java.util.ArrayList;
+import java.util.Set;
+
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.*;
 
@@ -17,17 +20,42 @@ public class GetCodeInformation
 		return this.visit((Module)(node.getItems().get(0)));		
 	}
 	
+	private String generateKLabel(Production item){
+		String label = "'";
+		for(ProductionItem p : item.getItems()){
+			if(!(p instanceof Terminal)){
+				label += "_";
+			} else {
+				label += ((Terminal)p).getTerminal();
+			}
+		}
+		return label;
+	}
+	
     public GlobalElement visit(Syntax node) throws RuntimeException {
     	
     	if(node.getPriorityBlocks().isEmpty()){
     		return new ThePair();
     	}
-        
-    	ThePair aPair = new ThePair();
-    	aPair.add((NonTerminal)node.getChild(null),
-    			(Production)(((PriorityBlock)(node.getPriorityBlocks().
-    					get(0))).getProductions().get(0)));
-    	return aPair;
+    	Set<Production> prods = node.getSyntaxByTag("function", context);
+    	ArrayList<Production> items = new ArrayList<Production>(prods);
+    	if(!prods.isEmpty()){
+    		ArrayList<NonTerminal> arguments = new ArrayList<NonTerminal>();
+    		for(int i = 0; i < items.get(0).getItems().size(); ++i){
+    			if(items.get(0).getItems().get(i) instanceof NonTerminal){
+    				arguments.add((NonTerminal) items.get(0).getItems().get(i));
+    			}
+    		}
+    		FunctionElement result =
+    				new FunctionElement(generateKLabel(items.get(0)),arguments,node.getChild(null));
+    		return result;
+    	} else {
+    		ThePair aPair = new ThePair();
+        	aPair.add((NonTerminal)node.getChild(null),
+        			(Production)(((PriorityBlock)(node.getPriorityBlocks().
+        					get(0))).getProductions().get(0)));
+        	return aPair;
+    	}
     }
     
     public GlobalElement visit(Module node) throws RuntimeException {
@@ -40,6 +68,9 @@ public class GetCodeInformation
     			if(aPair instanceof ThePair){
     				syntaxElement.add(((ThePair)aPair).sort,
     						((ThePair)aPair).production);
+    			} else if(aPair instanceof FunctionElement){
+    				syntaxElement.add(((FunctionElement)aPair).klabel
+    						, ((FunctionElement)aPair).arguments, ((FunctionElement)aPair).result);
     			}
     		}
     	}

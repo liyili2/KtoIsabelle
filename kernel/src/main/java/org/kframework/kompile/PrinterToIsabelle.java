@@ -57,6 +57,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 	Set<String> labelSet;
 	String inductiveName = "";
 	Set<String> builtinLabelSet;
+	Map<String, String> listSortMap;
+	Map<String, List<Rule>> functionMap;
 	
 	public PrinterToIsabelle(Context context) {
 		super(context);
@@ -66,6 +68,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 	public PrinterToIsabelle(Context context, GlobalElement element) {
 		super(context);
 		this.theElement = element;
+		this.listSortMap = new HashMap<String, String>();
+		this.functionMap = new HashMap<String, List<Rule>>();
 		labelSet = new HashSet<String>();
 		resultMap = new HashMap<NonTerminal, String>();
 		ArrayList<NonTerminal> tempList = new ArrayList<NonTerminal>
@@ -128,6 +132,10 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 		builtinLabelSet.add("'_>=Float_");
 		builtinLabelSet.add("'_==Float_");
 		builtinLabelSet.add("'_=/=Float_");
+		builtinLabelSet.add("'keys(_)");
+		builtinLabelSet.add("'_in_");
+		builtinLabelSet.add("'size(_)");
+		builtinLabelSet.add("'values(_)");
 	}
 	
 	private String getGenVar(){
@@ -183,46 +191,87 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    private String correctSort(String name){
+    	if(name.equals(Sort.INT.getName()))
+    		return "int";
+    	
+    	if(name.equals(Sort.STRING.getName()))
+    		return "string";
+    	
+    	if(name.equals(Sort.BOOL.getName()))
+    		return "bool";
+    	
+    	if(name.equals(Sort.FLOAT.getName()))
+    		return "real";
+    	
+    	if(this.listSortMap.containsKey(name))
+    		return this.listSortMap.get(name);
+    	
+    	return name;
+    }
+    
     //this function print out all the datatype from theElement map.
     private void printDatatype(){
 		ArrayList<NonTerminal> termList
             = new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
-        for(NonTerminal item : termList){
-        	
-        	if(((List<Production>)
-		        	(((Element)this.theElement).theMap.get(item))).size() == 1
+		
+		for(int index = 0; index < termList.size(); ++index) {
+			if(((List<Production>)
+		        	(((Element)this.theElement).theMap.get(termList.get(index)))).size() == 1
 		        	&& ((List<Production>)
-				        	(((Element)this.theElement).theMap.get(item))).get(0).isListDecl()){
-        		System.out.print("type_synonym "+item.getName()+" = ");
-        		System.out.println("\""+((UserList)(((List<Production>)
-    		        	(((Element)this.theElement).theMap.get(item)))
-    		        	.get(0).getListDecl())).getSort()+" list\"");
-        	} else {
-    	        System.out.print("datatype "+item.getName()+" = ");
+				        	(((Element)this.theElement).theMap
+				        			.get(termList.get(index)))).get(0).isListDecl()){
+        		this.listSortMap.put(termList.get(index)
+        				.getName(), ((UserList)(((List<Production>)
+    		        	(((Element)this.theElement).theMap.get(termList.get(index))))
+    		        	.get(0).getListDecl())).getSort()+" list");
+        	}
+		}
+		
+        for(int index = 0; index < termList.size(); ++index) {
+        	
+        	if(!(((List<Production>)
+		        	(((Element)this.theElement).theMap.get(termList.get(index)))).size() == 1
+		        	&& ((List<Production>)
+				        	(((Element)this.theElement).theMap
+				        			.get(termList.get(index)))).get(0).isListDecl())){
+        		if(index == 0){
+        			System.out.print("datatype "+termList.get(index).getName()+" = ");
+        		} else {
+        			System.out.print("and "+termList.get(index).getName()+" = ");
+        		}
     	        for(int i = 0; i < ((List<Production>)
-    		        	(((Element)this.theElement).theMap.get(item))).size(); ++i){
+    		        	(((Element)this.theElement).theMap
+    		        			.get(termList.get(index)))).size(); ++i){
     	    	    Production t = ((List<Production>)
-    			        	(((Element)this.theElement).theMap.get(item))).get(i);
+    			        	(((Element)this.theElement).theMap
+    			        			.get(termList.get(index)))).get(i);
     	    	     if(t.getKLabel() == null && t.getItems().size() == 1){
     	    		    if(t.getItems().get(0) instanceof NonTerminal){
     	    		    	if(((NonTerminal)t.getItems().get(0)).getName().equals("Int")
     	    			    		|| ((NonTerminal)t.getItems().get(0))
-    	    			    		.getName().equals("Bool")){
+    	    			    		.getName().equals("Bool")
+    	    			    		|| ((NonTerminal)t.getItems().get(0))
+    	    			    		.getName().equals("String")
+    	    			    		|| ((NonTerminal)t.getItems().get(0))
+    	    			    		.getName().equals("Float")){
     	    				    if(resultMap.keySet().contains(((NonTerminal)t.getItems().get(0)))){
     	    				    	if(resultMap.get(((NonTerminal)t.getItems().get(0))) == null){
-    	    				    		resultMap
-    	    				    		.put(((NonTerminal)t.getItems().get(0)), "Value"+this.varCounter);
+    	    				    		resultMap.put(((NonTerminal)t.getItems().get(0)),
+    	    				    				"Value"+this.varCounter);
     	    				    	}
     	    					    System.out.print(" Value"+this.varCounter+" ");
     	    				    } else {
-    	    				    	System.out.print(" "+item.getName()+this.varCounter+" ");
+    	    				    	System.out.print(" "
+    	    				    +termList.get(index).getName()+this.varCounter+" ");
     	    				    }
     			    		    this.varCounter++;
     		    			    System.out.print(((NonTerminal)t.getItems().get(0))
     		    			    		.getName().toLowerCase()+" ");
     	    			     } else if(((NonTerminal)t.getItems().get(0))
     	    			    		.getName().equals("Id")){
-    	    				    System.out.print(" "+item.getName()+" Id ");
+    	    				    System.out.print(" "+
+    	    			    		termList.get(index).getName()+"Id Id ");
     	    			    } else {
     	    				    if(resultMap.keySet().contains(((NonTerminal)t.getItems().get(0)))){
     	    				    	if(resultMap.get(((NonTerminal)t.getItems().get(0))) == null){
@@ -231,25 +280,39 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	    				    	}
     	    					     System.out.print(" Value"+this.varCounter+" ");
     	    				     } else {
-    	    					     System.out.print(" "+item.getName()+this.varCounter+" ");
+    	    					     System.out.print(" "
+    	    				     +termList.get(index).getName()+this.varCounter+" ");
     	    				      }
-    			    		      this.varCounter++;
-    		    			    System.out.print(((NonTerminal)t.getItems().get(0)).getName()+" ");
+    			    		    this.varCounter++;
+    			    		    if(this.listSortMap.containsKey(((NonTerminal)t
+    			    		    		.getItems().get(0)).getName())){
+    			    		    	System.out.print("\""+this.listSortMap.get(((NonTerminal)t
+    			    		    			.getItems().get(0)).getName())+"\" ");
+    			    		    } else {
+    			    		    	System.out.print(((NonTerminal)t
+    			    		    			.getItems().get(0)).getName()+" ");
+    			    		    }
     	    			    }
     	    		    }
     	    	    } else {
     	    		    System.out.print(" "+this.generateName(t.getKLabel().toString())+" ");
     		            for (int i1 = 0; i1 < t.getItems().size(); ++i1) {
     		                if (((ProductionItem) t.getItems().get(i1) instanceof NonTerminal)) {
-    		                	System.out.print(((NonTerminal) t.getItems().get(i1)).getName()+" ");
+    		                	if(this.listSortMap.containsKey(((NonTerminal) t
+    		                			.getItems().get(i1)).getName()))
+    		                		System.out.println("\""+this.listSortMap.get(((NonTerminal) t
+        		                			.getItems().get(i1)).getName())+"\" ");
+    		                	else
+    		                	    System.out.print(((NonTerminal) t
+    		                	    		.getItems().get(i1)).getName()+" ");
     		                }
     		            }
     	    	    }
     		        System.out.print("|");
     		    }
-    	        System.out.print(" "+item.getName()+"Hole ");
+    	        System.out.print(" "+termList.get(index).getName()+"Hole ");
     	        System.out.println();
-            }
+        	}
         }
     }
     
@@ -257,14 +320,31 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	System.out.print("datatype KItem = ");
 		ArrayList<NonTerminal> termList
         = new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
+		termList.addAll(this.resultMap.keySet());
         for(int i = 0; i < termList.size(); ++i){
-        	System.out.print(" "+termList.get(i).getName()+"KItem "
-                                           +termList.get(i).getName()+" ");
+        	if(this.listSortMap.containsKey(termList.get(i).getName()))
+        		System.out.println(" "+termList.get(i).getName()+"KItem \""
+        				+this.listSortMap.get(termList.get(i).getName())+"\" ");
+        	else 
+        	    System.out.print(" "+termList.get(i).getName()+"KItem "
+                                           +correctSort(termList.get(i).getName())+" ");
             System.out.print("|");
         }
         System.out.println(" IdKItem Id");
-        System.out.println("type_synonym K = \"kItem list\"");
+        System.out.println("type_synonym K = \"KItem list\"");
     }
+    
+	private String generateKLabel(Production item){
+		String label = "'";
+		for(ProductionItem p : item.getItems()){
+			if(!(p instanceof Terminal)){
+				label += "_";
+			} else {
+				label += ((Terminal)p).getTerminal();
+			}
+		}
+		return label;
+	}
     
     private void generateCellLabels(Cell t){
     	this.labelSet.add(t.getLabel().toUpperCase());
@@ -295,10 +375,47 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         	}
         }
         System.out.println();
-        System.out.println("datatype Cell = BagCell CellName Cell |"
+        System.out.println("datatype Cell = BagCell CellName \"Cell list\" |"
         		+"KCell CellName K | MapCell CellName Map "
         		+"| SetCell CellName Set | ListCell CellName List");
         System.out.println("type_synonym Bag = \"Cell list\"");
+    }
+    
+    private void printFunctions(Void p){
+        for(FunctionElement f : ((Element)this.theElement).functionDecls){
+        	ArrayList<Rule> terms = (ArrayList<Rule>) this.functionMap.get(f.klabel);
+        	System.out.println("fun "+this.generateName(f.klabel)+" where");
+        	Rule owiseRule = null;
+        	for(int i = 0; i < terms.size(); ++i){
+        		if(terms.get(i).containsAttribute("owise")){
+        			if(i == terms.size() - 1){
+            			System.out.print("\"");
+            			this.visit(((Rewrite)terms.get(i).getBody()).getLeft(), p);
+            			System.out.print(" = ");
+            			this.visit(((Rewrite)terms.get(i).getBody()).getRight(), p);
+            			System.out.println("\"");
+        			} else
+        			    owiseRule = terms.get(i);
+        		} else {
+        			System.out.print("\"");
+        			this.visit(((Rewrite)terms.get(i).getBody()).getLeft(), p);
+        			System.out.print(" = ");
+        			this.visit(((Rewrite)terms.get(i).getBody()).getRight(), p);
+        			System.out.print("\"");
+        			if(i != terms.size() - 1){
+        				System.out.println("|");
+        			}
+        		}
+        	}
+        	
+        	if(owiseRule != null){
+    			System.out.print("|\"");
+    			this.visit(((Rewrite)owiseRule.getBody()).getLeft(), p);
+    			System.out.print(" = ");
+    			this.visit(((Rewrite)owiseRule.getBody()).getRight(), p);
+    			System.out.println("\"");
+        	}
+        }
     }
     
     private String generateName(String t){
@@ -360,22 +477,33 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 
     
     public Void visit(Module mod, Void _void) {
-        System.out.println("theory "+mod.getName().toUpperCase()+"\nimports Main");
+        System.out.println("theory "+mod.getName().toUpperCase()+"\nimports Main Real");
         System.out.println("begin\n");
         
         System.out.println("datatype Id = TheId string");
-        System.out.println("datatype MapItem = Mapsto KItem K");
-        System.out.println("type_synonym Map = \"MapItem list\"");
-        System.out.println("datatype SetElem = SetItem K");
-        System.out.println("type_synonym Set = \"SetElem list\"");
-        System.out.println("datatype ListElem = ListItem K");
-        System.out.println("type_synonym List = \"ListElem list\"");
+        System.out.println("type_synonym Float = \"real\"");
         System.out.println("definition xor :: \"bool \\<Rightarrow> bool \\<Rightarrow> bool\""
         		+"(infixl \"[+]\" 60)");
         System.out.println("where \"A [+] B \\<equiv>"
         		+"(A \\<and> \\<not> B) \\<or> (\\<not> A \\<and> B)\"");
         printDatatype();
         printKItem();
+        System.out.println("datatype MapItem = Mapsto KItem K");
+        System.out.println("type_synonym Map = \"MapItem list\"");
+        System.out.println("datatype SetElem = SetItem K");
+        System.out.println("type_synonym Set = \"SetElem list\"");
+        System.out.println("datatype ListElem = ListItem K");
+        System.out.println("type_synonym List = \"ListElem list\"");
+        System.out.println("fun keys :: \"Map \\<Rightarrow> KItem set\" where\n"
+                            +"\"keys [] = {}\"\n|\"keys ((Mapsto A B)#l) "
+        		            +"= insert A (keys l)\"");
+        System.out.println("fun theValues :: \"Map \\<Rightarrow> K set\" where\n"
+                +"\"theValues [] = {}\"\n|\"theValues ((Mapsto A B)#l) "
+	            +"= insert B (theValues l)\"");
+        System.out.println("fun kSetToSet :: \"Set \\<Rightarrow> K set\" where\n"
+                +"\"kSetToSet [] = {}\"\n|\"kSetToSet ((SetItem A) #l) "
+	            +"= insert A (kSetToSet l)\"");
+        
         this.inductiveName = mod.getName().toLowerCase();
         
         ArrayList<Rule> ruleList = new ArrayList<Rule>();
@@ -384,6 +512,19 @@ public class PrinterToIsabelle extends NonCachingVisitor {
             	if(((Rule)item).getBody() instanceof Rewrite){
             		if((((Rewrite)(((Rule)item).getBody())).getLeft() instanceof Cell)){
             			ruleList.add((Rule)item);
+            		} else if(((Rewrite)(((Rule)item)
+            				.getBody())).getLeft() instanceof TermCons
+            				&& ((Rule)item).containsAttribute("function")){
+            			String theLabel = this.generateKLabel(((TermCons)
+            					((Rewrite)(((Rule)item).
+            							getBody())).getLeft()).getProduction());
+            			if(this.functionMap.containsKey(theLabel)){
+            				this.functionMap.get(theLabel).add((Rule)item);
+            			} else {
+            				ArrayList<Rule> resultRules = new ArrayList<Rule>();
+            				resultRules.add((Rule)item);
+            				this.functionMap.put(theLabel, resultRules);
+            			}            			
             		}
             	}
         	} else if(item instanceof Configuration){
@@ -393,7 +534,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         
         //print out the label set labels as a datatype
         printCellDatatype();
-        
+        System.out.println();
+        printFunctions(_void);
         System.out.println();
         System.out.println("inductive "+this.inductiveName+"TheRule where");
         for (int i = 0; i < ruleList.size(); ++i) {
@@ -418,14 +560,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
             System.out.print("?");
         else if (variable.isFreshConstant())
         	System.out.print("!");
-        System.out.print(variable.getName());
-        if(variable.getSort().equals(Sort.INT)
-        		|| variable.getSort().equals(Sort.STRING)
-        		|| variable.getSort().equals(Sort.BOOL)){
-        	System.out.println("::"+variable.getSort().getName().toLowerCase());
-        } else {
-            System.out.print("::" + variable.getSort().toString());
-        }
+        System.out.print(variable.getName()
+        		+"::" + this.correctSort(variable.getSort().toString()));
         System.out.print(")");
         return null;
     }
@@ -468,6 +604,21 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     		value += "ListCell " + cell.getLabel().toUpperCase()+" (";
     	} else if(cell.getContents().getSort().equals(Sort.SET)){
     		value += "SetCell " + cell.getLabel().toUpperCase()+" (";
+    	} else {
+    		value += "KCell " + cell.getLabel().toUpperCase()+" (";
+    		System.out.print(value);
+    		if(cell.getContents().getSort().equals(Sort.KITEM)){
+    			this.visit(cell.getContents(), _void);
+        		System.out.print(" # []))");
+    		} else if(cell.getContents().getSort().equals(Sort.K)){
+    			this.visit(cell.getContents(), _void);
+        		System.out.print("))");
+    		} else {
+    			System.out.println(cell.getContents().getSort().getName()+"KItem ");
+    			this.visit(cell.getContents(), _void);
+        		System.out.print(" # []))");
+    		}
+    		return null;
     	}
         System.out.print(value);
         //if (cell.hasLeftEllipsis()) {
@@ -561,7 +712,15 @@ public class PrinterToIsabelle extends NonCachingVisitor {
             			break;
             		}
             	}
-                this.visit(contents.get(i), _void);
+            	System.out.println(contents.get(i).getClass()+","+contents.get(i).getSort());
+            	if(contents.get(i).getSort().equals(Sort.KITEM)
+            			|| contents.get(i).getSort().equals(Sort.K)){
+            		this.visit(contents.get(i), _void);
+            	} else {
+            		System.out.print("("+contents.get(i).getSort().getName()+"KItem ");
+            		this.visit(contents.get(i), _void);
+            		System.out.print(")");
+            	}
                 if (i != contents.size() - 1) {
                 	System.out.print(" # ");
                 }
@@ -633,146 +792,164 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     
     private void dealWithBuiltins(ArrayList<Term> termList, String label, Void p){
     	if(label.equals("'_+Int_") || label.equals("'_+Float_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" + ");
+    		System.out.print(" + ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_-Int_") || label.equals("'_-Float_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" - ");
+    		System.out.print(" - ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_*Int_") || label.equals("'_*Float_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" * ");
+    		System.out.print(" * ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_/Int_") || label.equals("'_divInt_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" div ");
+    		System.out.print(" div ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_%Int_") || label.equals("'_modInt_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" mod ");
+    		System.out.print(" mod ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'~Int_") || label.equals("'--Float_")){
-    		System.out.println("(");
-    		System.out.println("- ");
+    		System.out.print("(");
+    		System.out.print("- ");
     		this.visit(termList.get(0), p);
     		System.out.println(")");
     	} else if(label.equals("'_<=Int_") || label.equals("'_<=Float_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" \\<le> ");
+    		System.out.print(" \\<le> ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_<Int_") || label.equals("'_<Float_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" < ");
+    		System.out.print(" < ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_>Int_") || label.equals("'_>Float_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" > ");
+    		System.out.print(" > ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_>=Int_") || label.equals("'_>=Float_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" \\<ge> ");
+    		System.out.print(" \\<ge> ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_==Int_") || label.equals("'_==Bool_")
     			|| label.equals("'_==String_") || label.equals("'_==Float_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" = ");
+    		System.out.print(" = ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_=/=Int_") || label.equals("'_=/=Bool_")
     			|| label.equals("'_=/=String_") || label.equals("'_=/=Float_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" \\<noteq> ");
+    		System.out.print(" \\<noteq> ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'notBool_")){
-    		System.out.println("(");
-    		System.out.println(" \\<not> ");
+    		System.out.print("(");
+    		System.out.print(" \\<not> ");
     		this.visit(termList.get(0), p);
     		System.out.println(")");
     	} else if(label.equals("'_andBool_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" \\<and> ");
+    		System.out.print(" \\<and> ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_andThenBool_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" \\<and> ");
+    		System.out.print(" \\<and> ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_xorBool_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" [+] ");
+    		System.out.print(" [+] ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_orElseBool_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" \\<or> ");
+    		System.out.print(" \\<or> ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_impliesBool_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" \\<longrightarrow> ");
+    		System.out.print(" \\<longrightarrow> ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_+String_")){
-    		System.out.println("(concat [");
+    		System.out.print("(concat [");
     		this.visit(termList.get(0), p);
-    		System.out.println(", ");
+    		System.out.print(", ");
     		this.visit(termList.get(1), p);
     		System.out.println("])");
     	} else if(label.equals("'lengthString")){
-    		System.out.println("(length ");
+    		System.out.print("(length ");
     		this.visit(termList.get(0), p);
     		System.out.println(")");
     	} else if(label.equals("'substrString")){
-    		System.out.println("(sublist ");
+    		System.out.print("(sublist ");
     		this.visit(termList.get(0), p);
-    		System.out.println(" {");
+    		System.out.print(" {");
     		this.visit(termList.get(1), p);
-    		System.out.println(" .. ");
+    		System.out.print(" .. ");
     		this.visit(termList.get(2), p);
     		System.out.println("})");
     	} else if(label.equals("'String2Int")){
-    		System.out.println("(length ");
+    		System.out.print("(length ");
     		this.visit(termList.get(0), p);
     		System.out.println(")");
     	} else if(label.equals("'_^Float_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" ^ ");
+    		System.out.print(" ^ ");
     		this.visit(termList.get(1), p);
     		System.out.println(")");
     	} else if(label.equals("'_/Float_")){
-    		System.out.println("(");
+    		System.out.print("(");
     		this.visit(termList.get(0), p);
-    		System.out.println(" / ");
+    		System.out.print(" / ");
     		this.visit(termList.get(1), p);
+    		System.out.println(")");
+    	} else if(label.equals("'size(_)")){
+    		System.out.print("(length ");
+    		this.visit(termList.get(0), p);
+    		System.out.println(")");
+    	} else if(label.equals("'keys(_)")){
+    		System.out.print("(keys ");
+    		this.visit(termList.get(0), p);
+    		System.out.println(")");
+    	} else if(label.equals("'values(_)")){
+    		System.out.print("(theValues ");
+    		this.visit(termList.get(0), p);
+    		System.out.println(")");
+    	} else if(label.equals("'_in_")){
+    		System.out.print("(");
+    		this.visit(termList.get(0), p);
+    		System.out.print(" \\<in> kSetToSet ");
+    		this.visit(termList.get(0), p);
     		System.out.println(")");
     	}
     }
@@ -840,6 +1017,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
             		System.out.print("(");
             		System.out.println("Mapsto");
                     for(int i = 0; i < termList.size(); ++i){
+                    	System.out.print(" "+termList.get(i).getClass());
                     	System.out.print(" ");
                     	this.visit(termList.get(i), _void);
                     }

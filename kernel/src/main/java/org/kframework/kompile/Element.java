@@ -5,9 +5,11 @@ import org.kframework.kil.*;
 
 public class Element implements GlobalElement {
 	HashMap<NonTerminal, List<Production>> theMap;
+	List<FunctionElement> functionDecls;
 	
 	public Element(){
 		theMap = new HashMap<NonTerminal, List<Production>>();
+		functionDecls = new ArrayList<FunctionElement>();
 	}
 	
 	public void add(NonTerminal key, Production value){
@@ -20,5 +22,11 @@ public class Element implements GlobalElement {
 		}
 		
 		theMap.get(key).add(value);
+	}
+	
+	public void add(String k, List<NonTerminal> a, NonTerminal r){
+		
+		FunctionElement result = new FunctionElement(k,a,r);
+		this.functionDecls.add(result);
 	}
 }

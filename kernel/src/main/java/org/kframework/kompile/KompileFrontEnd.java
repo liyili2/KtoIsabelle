@@ -10,6 +10,7 @@ import org.kframework.compile.utils.CompilerStepDone;
 import org.kframework.compile.utils.CompilerSteps;
 import org.kframework.compile.utils.MetaK;
 import org.kframework.kil.Definition;
+import org.kframework.kil.DefinitionItem;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.loader.CountNodesVisitor;
 import org.kframework.main.FrontEnd;
@@ -117,12 +118,22 @@ public class KompileFrontEnd extends FrontEnd {
         sw.start();
         javaDef = defLoader.get().loadDefinition(options.mainDefinitionFile(), options.mainModule(),
                 context);
-
+        
         loader.saveOrDie(files.resolveKompiled("definition-concrete.bin"), javaDef);
 
         Backend b = backend.get();
         CompilerSteps<Definition> steps = b.getCompilationSteps();
 
+        ArrayList abc = (ArrayList) javaDef.getItems();
+        List<org.kframework.kil.DefinitionItem> newList = new ArrayList<>();
+        for(int i = 0; i < abc.size();++i){
+        	if(abc.get(i) instanceof org.kframework.kil.Module){
+        		if(((org.kframework.kil.Module)abc.get(i)).getName().equals(javaDef.getMainModule())){
+        			newList.add((DefinitionItem) abc.get(i));
+        		}
+        	}
+        }
+        javaDef.setItems(newList);
         if (step == null) {
             step = b.getDefaultStep();
         }
@@ -131,7 +142,16 @@ public class KompileFrontEnd extends FrontEnd {
         } catch (CompilerStepDone e) {
             javaDef = (Definition) e.getResult();
         }
-
+        GetCodeInformation theGetter = new GetCodeInformation(context);
+        GlobalElement theElement = theGetter.visit(javaDef);
+        //System.out.println(((Element)theElement).kResultProductions);
+        //System.out.println(javaDef.toString());
+        //System.exit(0);
+        //System.out.println("Generated code is:"+((Element)theElement).theMap.toString());
+        //System.out.println(step);
+        PrinterToIsabelle printer = new PrinterToIsabelle(context, theElement);
+        printer.visit(javaDef, null);
+        System.exit(0);
         loader.saveOrDie(files.resolveKompiled("configuration.bin"),
                 MetaK.getConfiguration(javaDef, context));
 

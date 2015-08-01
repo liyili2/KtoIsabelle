@@ -1,0 +1,5 @@
+module ImpMap = Map.Make(String);;
+exception Side_Condition_Failure;;
+let stateRef = ref ImpMap.empty;;
+(let state = !stateRef in stateRef := (ImpMap.add "sum" 0 (ImpMap.add "n" 100 ImpMap.empty))); while (let state = !stateRef in let _764 = (ImpMap.find "n" state) in stateRef := state; (not (_764 <= 0))) do (let state = !stateRef in let _828 = (ImpMap.find "sum" state) in let _841 = (ImpMap.find "n" state) in let _872 = (ImpMap.find "n" (ImpMap.add "sum" (_828 + _841) state)) in stateRef := (ImpMap.add "n" (_872 + -1) (ImpMap.add "sum" (_828 + _841) state)))done; (let state = !stateRef in stateRef := state);;
+ImpMap.iter (fun key value ->  print_string(key ^ " " ^ (string_of_int value)^ "\n")) !stateRef;;

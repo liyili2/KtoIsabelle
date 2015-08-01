@@ -107,7 +107,7 @@ public class KApp extends Term implements Interfaces.MutableParent<Term, KApp.Ch
         }
     }
 
-    private KApp(KApp node) {
+    public KApp(KApp node) {
         super(node);
         setLabel(node.label);
         setChild(node.child);

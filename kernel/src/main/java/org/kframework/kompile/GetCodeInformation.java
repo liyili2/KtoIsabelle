@@ -7,19 +7,13 @@ import org.kframework.kil.loader.Context;
 import org.kframework.kil.*;
 
 public class GetCodeInformation
-          extends AbstractVisitor<Void, GlobalElement, RuntimeException> {
+		extends AbstractVisitor<Void, GlobalElement, RuntimeException> {
 
 	public GetCodeInformation(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub
 	}
-	
-	
-	public GlobalElement visit(Definition node) {
-        
-		return this.visit((Module)(node.getItems().get(0)));		
-	}
-	
+
 	private String generateKLabel(Production item){
 		String label = "'";
 		for(ProductionItem p : item.getItems()){
@@ -32,22 +26,55 @@ public class GetCodeInformation
 		return label;
 	}
 	
+	public GlobalElement visit(Definition node) {
+        
+		return this.visit((Module)(node.getItems().get(0)));		
+	}
+	
+    public GlobalElement visit(Module node) throws RuntimeException {
+    	
+    	Element syntaxElement = new Element();
+    	for(int i = 0; i < node.getItems().size(); ++i){
+    		
+    		if(node.getItems().get(i) instanceof Syntax){
+    			GlobalElement aPair = this.visit((Syntax)node.getItems().get(i));
+    			if(aPair instanceof ThePair){
+    				if (((ThePair) aPair).sort.getSort().equals(Sort.KRESULT)){
+    					syntaxElement.kResultProductions.add(((ThePair) aPair).production);
+    				} else {
+    					syntaxElement.add(((ThePair)aPair).sort,
+        						((ThePair)aPair).production);
+    				}
+    			} else if(aPair instanceof FunctionElement){
+    				syntaxElement.add(((FunctionElement)aPair).klabel, 
+    									((FunctionElement)aPair).arguments, 
+    									((FunctionElement)aPair).result);
+    			}
+    		}
+    	}
+    	return syntaxElement;
+    }
+
+	// set information from the syntaxes of a given definition
     public GlobalElement visit(Syntax node) throws RuntimeException {
     	
     	if(node.getPriorityBlocks().isEmpty()){
     		return new ThePair();
     	}
+    	// search by function label([function])
     	Set<Production> prods = node.getSyntaxByTag("function", context);
     	ArrayList<Production> items = new ArrayList<Production>(prods);
     	if(!prods.isEmpty()){
     		ArrayList<NonTerminal> arguments = new ArrayList<NonTerminal>();
     		for(int i = 0; i < items.get(0).getItems().size(); ++i){
-    			if(items.get(0).getItems().get(i) instanceof NonTerminal){
-    				arguments.add((NonTerminal) items.get(0).getItems().get(i));
-    			}
+    			if(items.get(0).getItems().get(i) instanceof NonTerminal)
+    				arguments.add((NonTerminal)items.get(0).getItems().get(i));
     		}
+    		// resultsort == node.getchild(null)
     		FunctionElement result =
-    				new FunctionElement(generateKLabel(items.get(0)),arguments,node.getChild(null));
+    				new FunctionElement(generateKLabel(items.get(0)),
+    									arguments,
+    									node.getChild(null));
     		return result;
     	} else {
     		ThePair aPair = new ThePair();
@@ -58,25 +85,6 @@ public class GetCodeInformation
     	}
     }
     
-    public GlobalElement visit(Module node) throws RuntimeException {
-    	
-    	Element syntaxElement = new Element();
-    	for(int i = 0; i < node.getItems().size(); ++i){
-    		
-    		if(node.getItems().get(i) instanceof Syntax){
-    			GlobalElement aPair = this.visit((Syntax)node.getItems().get(i));
-    			if(aPair instanceof ThePair){
-    				syntaxElement.add(((ThePair)aPair).sort,
-    						((ThePair)aPair).production);
-    			} else if(aPair instanceof FunctionElement){
-    				syntaxElement.add(((FunctionElement)aPair).klabel
-    						, ((FunctionElement)aPair).arguments, ((FunctionElement)aPair).result);
-    			}
-    		}
-    	}
-    	return syntaxElement;
-    }
-
     @Override
 	public GlobalElement defaultReturnValue(ASTNode node, Void p) {
 		// TODO Auto-generated method stub
@@ -84,8 +92,7 @@ public class GetCodeInformation
 	}
 
 	@Override
-	public <T extends ASTNode> T processChildTerm(T child,
-			GlobalElement childResult) {
+	public <T extends ASTNode> T processChildTerm(T child, GlobalElement childResult) {
 		// TODO Auto-generated method stub
 		return null;
 	}

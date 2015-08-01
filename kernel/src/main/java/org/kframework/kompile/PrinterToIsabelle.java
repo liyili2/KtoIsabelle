@@ -142,6 +142,63 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 		varCounter ++;
 		return "generatedVar"+varCounter;
 	}
+
+    private String generateName(String t){
+        
+        String value = "";
+        for(int i = 0; i < t.length(); ++i) {
+            if(t.charAt(i) == '\''){
+                if(i != 0) {
+                    value += "Top";
+                }
+            } else if (t.charAt(i) == '_') {
+                value += "X";
+            } else if(t.charAt(i) == '(' || t.charAt(i) == ')') {
+                value += "Br";
+            } else if(t.charAt(i) == '{' || t.charAt(i) == '}') {
+                value += "Bl";
+            } else if(t.charAt(i) == '[' || t.charAt(i) == ']') {
+                value += "Bm";
+            } else if(t.charAt(i) == '=') {
+                value += "Eq";
+            } else if(t.charAt(i) == '|') {
+                value += "Sl";
+            } else if(t.charAt(i) == '&') {
+                value += "An";
+            } else if(t.charAt(i) == '@') {
+                value += "At";
+            } else if(t.charAt(i) == '*') {
+                value += "Times";
+            } else if(t.charAt(i) == '+') {
+                value += "Plus";
+            } else if(t.charAt(i) == '-') {
+                value += "Minus";
+            } else if(t.charAt(i) == '/') {
+                value += "Div";
+            } else if(t.charAt(i) == '<') {
+                value += "Less";
+            } else if(t.charAt(i) == '>') {
+                value += "Greater";
+            } else if(t.charAt(i) == '!') {
+                value += "Not";
+            } else if(t.charAt(i) == ';') {
+                value += "End";
+            } else if(t.charAt(i) == ':') {
+                value += "To";
+            } else {
+                value += t.charAt(i);
+            }
+        }
+        if(value.length() >= 1) {
+            if(value.charAt(0) <= 'z' && value.charAt(0) >= 'a') {
+                value = value.substring(0, 1).toUpperCase()
+                        + value.substring(1, value.length());
+            } else if(value.charAt(0) <= '9' && value.charAt(0) >= '0'){
+                value = "Num"+value;
+            }
+        }
+        return value;
+    }
 	
     public Void visit(Term node, Void _void) {
     	if(node instanceof Rewrite){
@@ -181,7 +238,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	}
     	return null;
     }
-    
+    //1
     public Void visit(Definition def, Void _void) {
         for (DefinitionItem item : def.getItems()) {
         	if(item instanceof Module){
@@ -191,7 +248,20 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
-    private String correctSort(String name){
+    private String generateKLabel(Production item){
+        String label = "'";
+        for(ProductionItem p : item.getItems()){
+            if(!(p instanceof Terminal)){
+                label += "_";
+            } else {
+                label += ((Terminal)p).getTerminal();
+            }
+        }
+        return label;
+    }
+    
+    // rewriting logic | sort is a type
+    private String correctSort(String name, boolean withQuote){
     	if(name.equals(Sort.INT.getName()))
     		return "int";
     	
@@ -204,8 +274,12 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	if(name.equals(Sort.FLOAT.getName()))
     		return "real";
     	
-    	if(this.listSortMap.containsKey(name))
-    		return this.listSortMap.get(name);
+    	if(this.listSortMap.containsKey(name) && withQuote)
+    		return "\""+this.listSortMap.get(name)+"\"";
+    	
+        if(this.listSortMap.containsKey(name) && !withQuote)
+            return this.listSortMap.get(name);
+
     	
     	return name;
     }
@@ -213,7 +287,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     //this function print out all the datatype from theElement map.
     private void printDatatype(){
 		ArrayList<NonTerminal> termList
-            = new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
+			= new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
 		
 		for(int index = 0; index < termList.size(); ++index) {
 			if(((List<Production>)
@@ -221,8 +295,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 		        	&& ((List<Production>)
 				        	(((Element)this.theElement).theMap
 				        			.get(termList.get(index)))).get(0).isListDecl()){
-        		this.listSortMap.put(termList.get(index)
-        				.getName(), ((UserList)(((List<Production>)
+        		this.listSortMap.put(termList.get(index).getName(),
+        				((UserList)(((List<Production>)
     		        	(((Element)this.theElement).theMap.get(termList.get(index))))
     		        	.get(0).getListDecl())).getSort()+" list");
         	}
@@ -246,7 +320,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	    	    Production t = ((List<Production>)
     			        	(((Element)this.theElement).theMap
     			        			.get(termList.get(index)))).get(i);
-    	    	     if(t.getKLabel() == null && t.getItems().size() == 1){
+    	    	    // example: syntax Aexp ::= Int 
+    	    	    if(t.getKLabel() == null && t.getItems().size() == 1){
     	    		    if(t.getItems().get(0) instanceof NonTerminal){
     	    		    	if(((NonTerminal)t.getItems().get(0)).getName().equals("Int")
     	    			    		|| ((NonTerminal)t.getItems().get(0))
@@ -294,17 +369,14 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     			    		    }
     	    			    }
     	    		    }
-    	    	    } else {
-    	    		    System.out.print(" "+this.generateName(t.getKLabel().toString())+" ");
+    	    	    } 
+    	    	    // example: syntax Aexp ::= Int | Id
+    	    	    else {
+    	    		    System.out.print(" "+this.generateName(generateKLabel(t))+" ");// for constructor 
     		            for (int i1 = 0; i1 < t.getItems().size(); ++i1) {
-    		                if (((ProductionItem) t.getItems().get(i1) instanceof NonTerminal)) {
-    		                	if(this.listSortMap.containsKey(((NonTerminal) t
-    		                			.getItems().get(i1)).getName()))
-    		                		System.out.println("\""+this.listSortMap.get(((NonTerminal) t
-        		                			.getItems().get(i1)).getName())+"\" ");
-    		                	else
-    		                	    System.out.print(((NonTerminal) t
-    		                	    		.getItems().get(i1)).getName()+" ");
+    		                if (((ProductionItem)t.getItems().get(i1) instanceof NonTerminal)) {
+    		                    System.out.println(this.correctSort(((NonTerminal)t
+                                            .getItems().get(i1)).getName(), true)+" ");
     		                }
     		            }
     	    	    }
@@ -314,12 +386,43 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	        System.out.println();
         	}
         }
+
+
+        // example: syntax KResult ::= Int | Bool
+        System.out.print("datatype KRsult =");
+        for(int index = 0; index < ((Element)(this.theElement)).kResultProductions.size(); ++index) { 
+            if (((Production)(((Element)(this.theElement))
+                    .kResultProductions.get(index))).getKLabel() == null 
+                    && ((Production)(((Element) (this.theElement)).kResultProductions.get(index)))
+                    .getItems().size() == 1) {
+                System.out.print(" KResult"
+                        + this.varCounter
+                        + " "
+                        + ((Element) (this.theElement)).kResultProductions.get(index).toString());
+                this.varCounter++;
+                
+            } else {
+                System.out.print(" "+this.generateName(generateKLabel((Production)(((Element) (this.theElement))
+                        .kResultProductions.get(index))))+" ");// for constructor 
+                for(ProductionItem p : ((Production)(((Element) (this.theElement)).kResultProductions.get(index)))
+                        .getItems()){
+                    if(p instanceof NonTerminal){
+                        System.out.print(this.correctSort(((NonTerminal)p).getName(), true)+" ");
+                    }
+                } 
+            }
+            if (index != ((Element) (this.theElement)).kResultProductions.size() - 1) {
+                System.out.print(" | ");
+            }
+        }
+        System.out.println();
+        
     }
     
     private void printKItem(){
     	System.out.print("datatype KItem = ");
 		ArrayList<NonTerminal> termList
-        = new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
+            = new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
 		termList.addAll(this.resultMap.keySet());
         for(int i = 0; i < termList.size(); ++i){
         	if(this.listSortMap.containsKey(termList.get(i).getName()))
@@ -327,24 +430,14 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         				+this.listSortMap.get(termList.get(i).getName())+"\" ");
         	else 
         	    System.out.print(" "+termList.get(i).getName()+"KItem "
-                                           +correctSort(termList.get(i).getName())+" ");
+                                           +correctSort(termList.get(i).getName(), false)+" ");
             System.out.print("|");
         }
         System.out.println(" IdKItem Id");
         System.out.println("type_synonym K = \"KItem list\"");
     }
     
-	private String generateKLabel(Production item){
-		String label = "'";
-		for(ProductionItem p : item.getItems()){
-			if(!(p instanceof Terminal)){
-				label += "_";
-			} else {
-				label += ((Terminal)p).getTerminal();
-			}
-		}
-		return label;
-	}
+
     
     private void generateCellLabels(Cell t){
     	this.labelSet.add(t.getLabel().toUpperCase());
@@ -418,64 +511,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         }
     }
     
-    private String generateName(String t){
-    	
-    	String value = "";
-    	for(int i = 0; i < t.length(); ++i) {
-    		if(t.charAt(i) == '\''){
-    			if(i != 0) {
-    				value += "Top";
-    			}
-    		} else if (t.charAt(i) == '_') {
-    			value += "X";
-    		} else if(t.charAt(i) == '(' || t.charAt(i) == ')') {
-    			value += "Br";
-    		} else if(t.charAt(i) == '{' || t.charAt(i) == '}') {
-    			value += "Bl";
-    		} else if(t.charAt(i) == '[' || t.charAt(i) == ']') {
-    			value += "Bm";
-    		} else if(t.charAt(i) == '=') {
-    			value += "Eq";
-    		} else if(t.charAt(i) == '|') {
-    			value += "Sl";
-    		} else if(t.charAt(i) == '&') {
-    			value += "An";
-    		} else if(t.charAt(i) == '@') {
-    			value += "At";
-    		} else if(t.charAt(i) == '*') {
-    			value += "Times";
-    		} else if(t.charAt(i) == '+') {
-    			value += "Plus";
-    		} else if(t.charAt(i) == '-') {
-    			value += "Minus";
-    		} else if(t.charAt(i) == '/') {
-    			value += "Div";
-    		} else if(t.charAt(i) == '<') {
-    			value += "Less";
-    		} else if(t.charAt(i) == '>') {
-    			value += "Greater";
-    		} else if(t.charAt(i) == '!') {
-    			value += "Not";
-    		} else if(t.charAt(i) == ';') {
-    			value += "End";
-    		} else if(t.charAt(i) == ':') {
-    			value += "To";
-    		} else {
-    			value += t.charAt(i);
-    		}
-    	}
-    	if(value.length() >= 1) {
-    		if(value.charAt(0) <= 'z' && value.charAt(0) >= 'a') {
-    			value = value.substring(0, 1).toUpperCase()
-    					+ value.substring(1, value.length());
-    		} else if(value.charAt(0) <= '9' && value.charAt(0) >= '0'){
-    			value = "Num"+value;
-    		}
-    	}
-    	return value;
-    }
 
-    
+    //2
     public Void visit(Module mod, Void _void) {
         System.out.println("theory "+mod.getName().toUpperCase()+"\nimports Main Real");
         System.out.println("begin\n");
@@ -561,18 +598,18 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         else if (variable.isFreshConstant())
         	System.out.print("!");
         System.out.print(variable.getName()
-        		+"::" + this.correctSort(variable.getSort().toString()));
+        		+"::" + this.correctSort(variable.getSort().toString(), false));
         System.out.print(")");
         return null;
     }
-    
+    //4
     public Void visit(Rewrite rewrite, Void _void) {
         this.visit(rewrite.getLeft(), _void);
         System.out.println();
     	this.visit(rewrite.getRight(), _void);
     	return null;
     }
-    
+    //3
     public Void visit(Rule rule, Void _void) {
     	System.out.print("rule" + this.counter + ": \"");
     	this.counter++;
@@ -592,7 +629,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         System.out.println("\"");
         return null;
     }
-    
+    //non-function rule
     public Void visit(Cell cell, Void _void) {
     	String value = "(";
     	if(cell.getContents() instanceof Cell
@@ -953,7 +990,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     		System.out.println(")");
     	}
     }
-    
+    //function rule
     public Void visit(TermCons termCons, Void _void) {
         Production production = termCons.getProduction();
         if (production.isListDecl()) {

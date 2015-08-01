@@ -6,10 +6,12 @@ import org.kframework.kil.*;
 public class Element implements GlobalElement {
 	HashMap<NonTerminal, List<Production>> theMap;
 	List<FunctionElement> functionDecls;
+	List<Production> kResultProductions;
 	
 	public Element(){
 		theMap = new HashMap<NonTerminal, List<Production>>();
 		functionDecls = new ArrayList<FunctionElement>();
+		kResultProductions = new ArrayList<Production>();
 	}
 	
 	public void add(NonTerminal key, Production value){

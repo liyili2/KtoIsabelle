@@ -51,13 +51,62 @@ import com.sun.org.apache.xpath.internal.operations.Mod;
 public class PrinterToIsabelle extends NonCachingVisitor {
 
 	private int counter = 0;
+	/*
+	 * use for the counter for generated variables,
+	 * constructor or labels.
+	 */
 	private int varCounter = 0;
 	GlobalElement theElement;
+	
+	/*
+	 * this map is related to the listSortMap, I guess
+	 * the listSortMap and result map should be unified.
+	 * it is mapping from the sort to the generated constructor
+	 * for the sort.
+	 * For example, we have the following case:
+	 * syntax AExp ::= Int
+	 * then we generate the constructor  Vaulue0
+	 * if the varCounter is at 0, and increase the varCounter
+	 * we need this because K allow people to input like:
+	 * AExp ::= Int
+	 * but Isabelle needs at least a constructor for it:
+	 * AExp ::= Value0 Int
+	 */
 	Map<NonTerminal, String> resultMap;
 	Set<String> labelSet;
 	String inductiveName = "";
+	
+	/*
+	 * this data is to have a collection of all builtin functions in K.
+	 * apprently, builtin functions need to be translated into builtin
+	 * functions in Isabelle.
+	 */
 	Set<String> builtinLabelSet;
+	/*
+	 * this map is actually have the same machanism as resultMap
+	 * When we have list declaration syntax as:
+	 * syntax Ids ::= List{Id,","}
+	 * there is no such idea in Isabelle. What we need to translate
+	 * to is like:
+	 * type_synonym ids ::= "Id list"
+	 * or we replace every position which we will have an Ids sort appeared
+	 * to be Id list.
+	 * In this printerToIsabelle file, we use the second way, that is, we replace
+	 * every place of ids to be Id list.
+	 * In order to do so, we need to keep a map from the sort:Ids to the Isabelle representation
+	 * of it as: Id list. that is the job of the listSortMap
+	 */
 	Map<String, String> listSortMap;
+	
+	/*
+	 * this map is for functions. 
+	 * We will have a map from function klabels to function rules.
+	 * In K, people don't divide rules into whehther or not it belongs
+	 * to one function labels. 
+	 * they view all rules are the same.
+	 * When we translate it into Isabelle, we need to divide rules
+	 * into different categories based on the left hand side function klabels.
+	 */
 	Map<String, List<Rule>> functionMap;
 	
 	public PrinterToIsabelle(Context context) {
@@ -65,6 +114,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 		// TODO Auto-generated constructor stub
 	}
 	
+	//a constructor to generate the important information.
 	public PrinterToIsabelle(Context context, GlobalElement element) {
 		super(context);
 		this.theElement = element;
@@ -74,6 +124,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 		resultMap = new HashMap<NonTerminal, String>();
 		ArrayList<NonTerminal> tempList = new ArrayList<NonTerminal>
 		    (((Element)this.theElement).theMap.keySet());
+		
+		//generate all keys for resultmap.
 		for(NonTerminal n : tempList){
 			if(n.getName().equals("KResult")){
 				List<Production> prodList = (List<Production>) ((Element)this.theElement).theMap.get(n);
@@ -138,68 +190,22 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 		builtinLabelSet.add("'values(_)");
 	}
 	
+	//this function will generate the name or variables based on the varCouonter
+	//and then increase the varCounter.
 	private String getGenVar(){
 		varCounter ++;
 		return "generatedVar"+varCounter;
 	}
-
-    private String generateName(String t){
-        
-        String value = "";
-        for(int i = 0; i < t.length(); ++i) {
-            if(t.charAt(i) == '\''){
-                if(i != 0) {
-                    value += "Top";
-                }
-            } else if (t.charAt(i) == '_') {
-                value += "X";
-            } else if(t.charAt(i) == '(' || t.charAt(i) == ')') {
-                value += "Br";
-            } else if(t.charAt(i) == '{' || t.charAt(i) == '}') {
-                value += "Bl";
-            } else if(t.charAt(i) == '[' || t.charAt(i) == ']') {
-                value += "Bm";
-            } else if(t.charAt(i) == '=') {
-                value += "Eq";
-            } else if(t.charAt(i) == '|') {
-                value += "Sl";
-            } else if(t.charAt(i) == '&') {
-                value += "An";
-            } else if(t.charAt(i) == '@') {
-                value += "At";
-            } else if(t.charAt(i) == '*') {
-                value += "Times";
-            } else if(t.charAt(i) == '+') {
-                value += "Plus";
-            } else if(t.charAt(i) == '-') {
-                value += "Minus";
-            } else if(t.charAt(i) == '/') {
-                value += "Div";
-            } else if(t.charAt(i) == '<') {
-                value += "Less";
-            } else if(t.charAt(i) == '>') {
-                value += "Greater";
-            } else if(t.charAt(i) == '!') {
-                value += "Not";
-            } else if(t.charAt(i) == ';') {
-                value += "End";
-            } else if(t.charAt(i) == ':') {
-                value += "To";
-            } else {
-                value += t.charAt(i);
-            }
-        }
-        if(value.length() >= 1) {
-            if(value.charAt(0) <= 'z' && value.charAt(0) >= 'a') {
-                value = value.substring(0, 1).toUpperCase()
-                        + value.substring(1, value.length());
-            } else if(value.charAt(0) <= '9' && value.charAt(0) >= '0'){
-                value = "Num"+value;
-            }
-        }
-        return value;
-    }
 	
+	/*
+	 * (non-Javadoc)
+	 * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.Term, java.lang.Object)
+	 * this is a visitor case function.
+	 * Since more terms we are looking for have super class Term
+	 * we need to have a way to know its actual class is.
+	 * This function is to discover the actual class of a given term and
+	 * then direct those terms into its correct visitor function. 
+	 */
     public Void visit(Term node, Void _void) {
     	if(node instanceof Rewrite){
     		this.visit((Rewrite)node, _void);
@@ -238,7 +244,14 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	}
     	return null;
     }
-    //1
+    
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.Definition, java.lang.Object)
+     * This is the top of the visitor pattern.
+     * It call the module visitor function because we will assume now we only have
+     * one module in our definition.
+     */
     public Void visit(Definition def, Void _void) {
         for (DefinitionItem item : def.getItems()) {
         	if(item instanceof Module){
@@ -248,20 +261,17 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
-    private String generateKLabel(Production item){
-        String label = "'";
-        for(ProductionItem p : item.getItems()){
-            if(!(p instanceof Terminal)){
-                label += "_";
-            } else {
-                label += ((Terminal)p).getTerminal();
-            }
-        }
-        return label;
-    }
-    
-    // rewriting logic | sort is a type
-    private String correctSort(String name, boolean withQuote){
+    /*
+     * the meaning of the function is to make a
+     * correct translation of a give sort in K
+     * since some builtin sorts of K have different
+     * name as the sorts of Isabelle. such as
+     * Int in K will be int in Isabelle
+     * Float in K will be real in Isabelle.
+     * That is why we need this function
+     * to print out the sort correctly for us.
+     */
+    private String correctSort(String name){
     	if(name.equals(Sort.INT.getName()))
     		return "int";
     	
@@ -274,20 +284,66 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	if(name.equals(Sort.FLOAT.getName()))
     		return "real";
     	
-    	if(this.listSortMap.containsKey(name) && withQuote)
-    		return "\""+this.listSortMap.get(name)+"\"";
-    	
-        if(this.listSortMap.containsKey(name) && !withQuote)
-            return this.listSortMap.get(name);
-
+    	if(this.listSortMap.containsKey(name))
+    		return this.listSortMap.get(name);
     	
     	return name;
     }
     
     //this function print out all the datatype from theElement map.
+    /*
+     * The datatype is actually the syntax in K
+     * for example:
+     * syntax AExp ::= goto(AExp,AExp) should be translated into 
+     * datatype AExp = goto AExp AExp
+     * 
+     * However, there are small things to worry about.
+     * 
+     * First, we need to use a universal name generating machanism. 
+     * 
+     * in Isabelle, we can't use any symbols other than english characters and nums
+     * for constructor. 
+     * If a user has syntax AExp = AExp "/" AExp, then the klabel for it is '_/_
+     * it is hard to translate to Isabelle since we can't use something like:
+     * datatype AExp = '_/_ AExp AExp in Isabelle.
+     * then, we will use the generateName function to generate the label as:
+     * XDivX for the kabel, then the syntax become:
+     * datatype AExp = XDivX AExp AExp in Isabelle.
+     * 
+     * In addition, we need to take care about the issues of recursive datatype.
+     * In Isabelle, we are only allowed to have a datatype declare something which have
+     * already existed. For example, K allows people to have:
+     * syntax AExp ::= BExp "+" BExp
+     * syntax BExp ::= AExp "&&" AExp
+     * 
+     * however you can use something like:
+     * datatype AExp = Plus BExp BExp 
+     * datatype BExp = And AExp AExp
+     * in Isabelle. 
+     * 
+     * because in Isabelle, you can declare a datatype AExp to have BExp which at that point
+     * it doesn't exist yet.
+     * You must do something like:
+     * datatype AExp = Plus BExp BExp
+     * and BExp = And AExp AExp
+     * 
+     * In this file, we solve the problem by use and to connect all datatypes together.
+     * 
+     * Third, we need constructors for all productions in Isabelle:
+     * In K, we can do something like:
+     * syntax AExp ::= Int
+     * 
+     * In Isabelle, we are not allowed to do so. We must do something like:
+     * syntax AExp ::= Value Int
+     * I mean to add a construtor for it. 
+     * We also need to remember the constructor we add and to use this constructor
+     * in every place where the Int appears.
+     * That is why in the code of printDatatype, we need to keep track of listSortMap
+     * and resultMap
+     */
     private void printDatatype(){
 		ArrayList<NonTerminal> termList
-			= new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
+            = new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
 		
 		for(int index = 0; index < termList.size(); ++index) {
 			if(((List<Production>)
@@ -295,8 +351,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 		        	&& ((List<Production>)
 				        	(((Element)this.theElement).theMap
 				        			.get(termList.get(index)))).get(0).isListDecl()){
-        		this.listSortMap.put(termList.get(index).getName(),
-        				((UserList)(((List<Production>)
+        		this.listSortMap.put(termList.get(index)
+        				.getName(), ((UserList)(((List<Production>)
     		        	(((Element)this.theElement).theMap.get(termList.get(index))))
     		        	.get(0).getListDecl())).getSort()+" list");
         	}
@@ -320,8 +376,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	    	    Production t = ((List<Production>)
     			        	(((Element)this.theElement).theMap
     			        			.get(termList.get(index)))).get(i);
-    	    	    // example: syntax Aexp ::= Int 
-    	    	    if(t.getKLabel() == null && t.getItems().size() == 1){
+    	    	     if(t.getKLabel() == null && t.getItems().size() == 1){
     	    		    if(t.getItems().get(0) instanceof NonTerminal){
     	    		    	if(((NonTerminal)t.getItems().get(0)).getName().equals("Int")
     	    			    		|| ((NonTerminal)t.getItems().get(0))
@@ -369,14 +424,17 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     			    		    }
     	    			    }
     	    		    }
-    	    	    } 
-    	    	    // example: syntax Aexp ::= Int | Id
-    	    	    else {
-    	    		    System.out.print(" "+this.generateName(generateKLabel(t))+" ");// for constructor 
+    	    	    } else {
+    	    		    System.out.print(" "+this.generateName(t.getKLabel().toString())+" ");
     		            for (int i1 = 0; i1 < t.getItems().size(); ++i1) {
-    		                if (((ProductionItem)t.getItems().get(i1) instanceof NonTerminal)) {
-    		                    System.out.println(this.correctSort(((NonTerminal)t
-                                            .getItems().get(i1)).getName(), true)+" ");
+    		                if (((ProductionItem) t.getItems().get(i1) instanceof NonTerminal)) {
+    		                	if(this.listSortMap.containsKey(((NonTerminal) t
+    		                			.getItems().get(i1)).getName()))
+    		                		System.out.println("\""+this.listSortMap.get(((NonTerminal) t
+        		                			.getItems().get(i1)).getName())+"\" ");
+    		                	else
+    		                	    System.out.print(((NonTerminal) t
+    		                	    		.getItems().get(i1)).getName()+" ");
     		                }
     		            }
     	    	    }
@@ -386,43 +444,24 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	        System.out.println();
         	}
         }
-
-
-        // example: syntax KResult ::= Int | Bool
-        System.out.print("datatype KRsult =");
-        for(int index = 0; index < ((Element)(this.theElement)).kResultProductions.size(); ++index) { 
-            if (((Production)(((Element)(this.theElement))
-                    .kResultProductions.get(index))).getKLabel() == null 
-                    && ((Production)(((Element) (this.theElement)).kResultProductions.get(index)))
-                    .getItems().size() == 1) {
-                System.out.print(" KResult"
-                        + this.varCounter
-                        + " "
-                        + ((Element) (this.theElement)).kResultProductions.get(index).toString());
-                this.varCounter++;
-                
-            } else {
-                System.out.print(" "+this.generateName(generateKLabel((Production)(((Element) (this.theElement))
-                        .kResultProductions.get(index))))+" ");// for constructor 
-                for(ProductionItem p : ((Production)(((Element) (this.theElement)).kResultProductions.get(index)))
-                        .getItems()){
-                    if(p instanceof NonTerminal){
-                        System.out.print(this.correctSort(((NonTerminal)p).getName(), true)+" ");
-                    }
-                } 
-            }
-            if (index != ((Element) (this.theElement)).kResultProductions.size() - 1) {
-                System.out.print(" | ");
-            }
-        }
-        System.out.println();
-        
     }
     
+    /*
+     * this function is to print out all the KItems in Isabelle
+     * In K, we have a implicit sort K and KItem.
+     * In Isabelle, everything needs to be clear
+     * That is why we need to print out the KItems.
+     * such as:
+     * datatype KItem =  AExpKItem AExp | BExpKItem BExp 
+     *   | PgmKItem Pgm | BlockKItem Block | IdsKItem "Id list"
+     * | StmtKItem Stmt | BoolKItem bool | IntKItem int | IdKItem Id
+     * We need to know all the sorts in a definition in order to print out
+     * a KItem constructor production for each sort.
+     */
     private void printKItem(){
     	System.out.print("datatype KItem = ");
 		ArrayList<NonTerminal> termList
-            = new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
+        = new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
 		termList.addAll(this.resultMap.keySet());
         for(int i = 0; i < termList.size(); ++i){
         	if(this.listSortMap.containsKey(termList.get(i).getName()))
@@ -430,15 +469,53 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         				+this.listSortMap.get(termList.get(i).getName())+"\" ");
         	else 
         	    System.out.print(" "+termList.get(i).getName()+"KItem "
-                                           +correctSort(termList.get(i).getName(), false)+" ");
+                                           +correctSort(termList.get(i).getName())+" ");
             System.out.print("|");
         }
         System.out.println(" IdKItem Id");
         System.out.println("type_synonym K = \"KItem list\"");
     }
     
-
+	/*
+	 * this function takes a production and to generate a klabel
+	 * for the input production.
+	 * the way to generate the klabel is that
+	 * we go through all the production item in the production, 
+	 * and if a production item is terminal then we just put it
+	 * into the string.
+	 * if the production item is a nonterminal, then we use _ as
+	 * the label and put it into the label string.
+	 * in the production is a terminal or a nonTerminal.
+	 * if the input production item is a terminal
+	 */
+	private String generateKLabel(Production item){
+		String label = "'";
+		for(ProductionItem p : item.getItems()){
+			if(!(p instanceof Terminal)){
+				label += "_";
+			} else {
+				label += ((Terminal)p).getTerminal();
+			}
+		}
+		return label;
+	}
     
+	/*
+	 * The two following functions need to be changed.
+	 * These function is to get all the name of cells
+	 * in a K Definition in order to print out them.
+	 * For example, if we have the configuration for a
+	 * definition in K:
+	 *   configuration <T color="yellow">
+     *             <k color="green"> $PGM:Pgm </k>
+     *             <state color="red"> .Map </state>
+     *           </T>
+     * We need to collect all the names for each cell as
+     * T, K, STATE,( we use upper cases for everythings)
+     * In Isabelle, everything needs to be declare, we need to have a 
+     * datatype for the name of these cells, such as
+     * datatype CellLabel = T | K | STATE          
+	 */
     private void generateCellLabels(Cell t){
     	this.labelSet.add(t.getLabel().toUpperCase());
     	if(t.getContents() instanceof Bag){
@@ -458,6 +535,10 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	}
     }
     
+    /*
+     * this function will actually printout the datatype for
+     * cell names.
+     */
     private void printCellDatatype(){
         System.out.print("datatype CellName = ");
         ArrayList<String> labelTempList = new ArrayList<String>(this.labelSet);
@@ -474,6 +555,27 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         System.out.println("type_synonym Bag = \"Cell list\"");
     }
     
+    /*
+     * Since all the function element has genereated in the getCodeInformation
+     * class. this function will print out all the functions in Isabelle.
+     * For example, in K we have:
+     *   syntax Int ::= goto(Bool) [function]
+     *   
+     *     rule goto(true) => 1
+     *     rule goto(A:Bool) => 0 [owise]
+     *     
+     * Hence, we need to print out like:
+     * fun GotoBrXBr where
+     * "(GotoBrXBr ( False )) = ( 1 ) "|
+     * "(GotoBrXBr (A::bool)) = ( 0 )"
+     * 
+     * The function syntax in Isabelle is always like:
+     * fun Name where
+     * "Name input = output" |
+     * "Name anotherinput = anotherout"
+     * 
+     * etc
+     */
     private void printFunctions(Void p){
         for(FunctionElement f : ((Element)this.theElement).functionDecls){
         	ArrayList<Rule> terms = (ArrayList<Rule>) this.functionMap.get(f.klabel);
@@ -511,8 +613,74 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         }
     }
     
+    /*
+     * this function will change the name of symbols in K
+     * to name of english characters in Isabelle.
+     */
+    private String generateName(String t){
+    	
+    	String value = "";
+    	for(int i = 0; i < t.length(); ++i) {
+    		if(t.charAt(i) == '\''){
+    			if(i != 0) {
+    				value += "Top";
+    			}
+    		} else if (t.charAt(i) == '_') {
+    			value += "X";
+    		} else if(t.charAt(i) == '(' || t.charAt(i) == ')') {
+    			value += "Br";
+    		} else if(t.charAt(i) == '{' || t.charAt(i) == '}') {
+    			value += "Bl";
+    		} else if(t.charAt(i) == '[' || t.charAt(i) == ']') {
+    			value += "Bm";
+    		} else if(t.charAt(i) == '=') {
+    			value += "Eq";
+    		} else if(t.charAt(i) == '|') {
+    			value += "Sl";
+    		} else if(t.charAt(i) == '&') {
+    			value += "An";
+    		} else if(t.charAt(i) == '@') {
+    			value += "At";
+    		} else if(t.charAt(i) == '*') {
+    			value += "Times";
+    		} else if(t.charAt(i) == '+') {
+    			value += "Plus";
+    		} else if(t.charAt(i) == '-') {
+    			value += "Minus";
+    		} else if(t.charAt(i) == '/') {
+    			value += "Div";
+    		} else if(t.charAt(i) == '<') {
+    			value += "Less";
+    		} else if(t.charAt(i) == '>') {
+    			value += "Greater";
+    		} else if(t.charAt(i) == '!') {
+    			value += "Not";
+    		} else if(t.charAt(i) == ';') {
+    			value += "End";
+    		} else if(t.charAt(i) == ':') {
+    			value += "To";
+    		} else {
+    			value += t.charAt(i);
+    		}
+    	}
+    	if(value.length() >= 1) {
+    		if(value.charAt(0) <= 'z' && value.charAt(0) >= 'a') {
+    			value = value.substring(0, 1).toUpperCase()
+    					+ value.substring(1, value.length());
+    		} else if(value.charAt(0) <= '9' && value.charAt(0) >= '0'){
+    			value = "Num"+value;
+    		}
+    	}
+    	return value;
+    }
 
-    //2
+    /*
+     * The visitor module function will
+     * print out the datatypes by using printDatatype function
+     * , printKItem function and printCellDatatype function.
+     * then, it will genereate only one inductive rules for all the non-function
+     * rules in K.
+     */
     public Void visit(Module mod, Void _void) {
         System.out.println("theory "+mod.getName().toUpperCase()+"\nimports Main Real");
         System.out.println("begin\n");
@@ -586,11 +754,37 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * This function will visit the list terminator in K
+     * In K, List Terminator is really a class.
+     * For example, in a rule like:
+     * 
+     * rule A => .K
+     * 
+     * the .K is really a list terminator. 
+     * 
+     * so that we need to do some translation like:
+     * 
+     * rule A ==> [] in Isabelle.
+     * 
+     */
     public Void visit(ListTerminator terminator, Void _void) {
         System.out.print("[]");
         return null;
     }
     
+    /*
+     *(non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.Variable, java.lang.Object)
+     * this visitor function will finish all the works for
+     * translating a variable in K to a variable in Isabelle.
+     * 
+     * The way to do so is for a given variable like
+     * A:KItem we will print out like:
+     * (A::KItem)
+     * In this example, A is the name for the variable and
+     * KItem is the sort for the variable.
+     */
     public Void visit(Variable variable, Void _void) {
     	System.out.print("(");
         if (variable.isFreshVariable())
@@ -598,18 +792,48 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         else if (variable.isFreshConstant())
         	System.out.print("!");
         System.out.print(variable.getName()
-        		+"::" + this.correctSort(variable.getSort().toString(), false));
+        		+"::" + this.correctSort(variable.getSort().toString()));
         System.out.print(")");
         return null;
     }
-    //4
+    
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.Rewrite, java.lang.Object)
+     * K is kind of strange, a rewrite is a part of the rule.
+     * it is actually the main part of the rules.
+     * 
+     * for example, if we have the rule like:
+     * rule A => B when A =/= 0
+     * 
+     * then the A => B is the rewrite
+     * The rewrite is calling the visitor for the LHS and the RHS
+     * for the rules. 
+     * 
+     * for example if we have A => B rewrite
+     * then we will call a function visitor to visit the LHS A and then
+     * the RHS B.
+     * A and B are assumed to be Cells in this file.
+     */
     public Void visit(Rewrite rewrite, Void _void) {
         this.visit(rewrite.getLeft(), _void);
         System.out.println();
     	this.visit(rewrite.getRight(), _void);
     	return null;
     }
-    //3
+    
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.Rule, java.lang.Object)
+     * this is a visitor function to visit the rules.
+     * 
+     * It will call rewrite visit function for its rewrite body
+     * and call othertings (Most likely KApp visitor function to check the
+     * requires and ensures). 
+     * In a rule, requires and ensures means the when part such as
+     * rule A => B when C
+     * requires and ensures mean the C.
+     */
     public Void visit(Rule rule, Void _void) {
     	System.out.print("rule" + this.counter + ": \"");
     	this.counter++;
@@ -629,7 +853,36 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         System.out.println("\"");
         return null;
     }
-    //non-function rule
+    
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.Cell, java.lang.Object)
+     * the cell will be the LHS and RHS of a rewrite.
+     * In K we have something like:
+     * <k> somethingA </k> => <k> somethingB </k>
+     * when we translate it into Isabelle,
+     * we need to do like:
+     * (K, somethingA) ==> (K, somethingB)
+     * In Isabelle you can never write like 
+     * <abc> A </abc>
+     * 
+     * there is a problem we must solve in the function:
+     * In K, people can write
+     * <abc> A </abc> => <abc> B </abc>
+     * and <k>B</k> <t>C</t> => <k>E</k> <t>F</t>
+     * at the same time. 
+     * In Isabelle, we must make sure that the LHS and RHS of every rule
+     * will have the same type.
+     * In the case above, we have a type of a cell abc in the first case
+     * but we have two cells in LHS and RHS for the second rules.
+     * 
+     *  To solve this problem, we need to view everything is a list of cells
+     *  in Isabelle. The first rule will be
+     *  (abc, A)#[] => (abc,B)
+     *  and the second rule will be
+     *  (k, B)#((t,C)#[]) => (k, E)#((t,C)#[])
+     *   
+     */
     public Void visit(Cell cell, Void _void) {
     	String value = "(";
     	if(cell.getContents() instanceof Cell
@@ -669,6 +922,12 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.Bag, java.lang.Object)
+     * the bag visitor is a list of cells.
+     * We just visit it by call cell visitor function in each child of the Bag
+     */
     public Void visit(Bag bag, Void _void) {
         for (int i = 0; i < bag.getContents().size(); ++i) {
             this.visit((Term)(bag.getContents().get(i)), _void);
@@ -692,6 +951,19 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.KList, java.lang.Object)
+     * KList visitor is a list of KSequence.
+     * In K, we have
+     * KSequence (which is the same as K) = KItem list
+     * KItem = klabel(KList)
+     * KList = KSequence list
+     * 
+     * However, the K cell usually start at the level of K
+     * 
+     * We need to call visitor of KSequence on each child of the klist.
+     */
     public Void visit(KList listOfK, Void _void) {
         java.util.List<Term> termList = listOfK.getContents();
         for (int i = 0; i < termList.size(); ++i) {
@@ -706,6 +978,31 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.KApp, java.lang.Object)
+     * KApp visitor is equal to KItem.
+     * Its form is like 
+     * KApp(KItem) = klabel(KList)
+     * 
+     * this visitor function will call
+     * the KLabelConstant visitor function for the klabel
+     * and the Klist visitor function for the kList
+     * 
+     * However, there are special cases.
+     * 
+     * a KApp could be a token, In K, token is viewed as KApp
+     * 
+     * for example, when we see the rule
+     * rule A => 1
+     * the 1 is really a token (interger token), then it is acutally a KApp
+     * in K, and it will be print out in the internal like 1(.KList)
+     * 
+     * However, we don't want that in Isabelle. We need to print out 1 as 1
+     * in Isabelle. so we need to avoid printing out the KList part when we found that
+     * the klabel is actually a token in KAPP
+     * In this case, the KAPP will use token visitor functions for its klabel part.
+     */
     public Void visit(KApp kapp, Void _void) {
     	System.out.print("(");
     	if(kapp.getLabel() instanceof KLabelConstant
@@ -733,11 +1030,43 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.KLabelConstant, java.lang.Object)
+     * for the klabel in a KApp = klabel(KList) structure.
+     */
     public Void visit(KLabelConstant kLabelConstant, Void _void) {
         System.out.print(this.generateName(kLabelConstant.getLabel()));
         return null;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.KSequence, java.lang.Object)
+     * KSequence is a list of KApp (or KItem), we need to visit the each child of the KSequence
+     * by KApp visitor function.
+     * The problem is that in K, we can write something like:
+     * 
+     * rule A:AExp => 1
+     * rule B:BExp => 2
+     * 
+     * where A and B are two different sorts and 1 and 2 belong to interger sort which is
+     * different from AExp and BExp.
+     * 
+     * In Isabelle, we need to have unique sort relation in LHS and RHS of each rule.
+     * 
+     * Hence, we need to normalize the sort, for the rules above, we need to print out like
+     * 
+     * rule (AExpKItem A)#[] => (IntKItem 1)#[]
+     * rule (BExpKItem B)#[] => (IntKItem 2)#[]
+     * 
+     * where the AExpKItem, BExpKItem and IntKItem are all constructors and the meaning of them
+     * is to translate the AExp, BExp and Int terms into KItem terms.
+     * 
+     * In addition, since most LHS and RHS is written in the KSequence level, we
+     * must also make the RHS and LHS of Isabelle translation to be in the KSequence level
+     * by adding #[] in the end.
+     */
     public Void visit(KSequence ksequence, Void _void) {
         java.util.List<Term> contents = ksequence.getContents();
         System.out.print("(");
@@ -769,6 +1098,11 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.ListBuiltin, java.lang.Object)
+     * belows are the buildtins and tokens functions.
+     */
     public Void visit(ListBuiltin node, Void p) throws RuntimeException {
         for (Term t : node.elementsLeft()) {
             this.visit(t, p);
@@ -827,6 +1161,11 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * this function is to deal with builtin functions
+     * Once we found out a given term is in the builtins of K, 
+     * we must print out them into a buildtin in Isabelle.
+     */
     private void dealWithBuiltins(ArrayList<Term> termList, String label, Void p){
     	if(label.equals("'_+Int_") || label.equals("'_+Float_")){
     		System.out.print("(");
@@ -990,7 +1329,21 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     		System.out.println(")");
     	}
     }
-    //function rule
+    
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.TermCons, java.lang.Object)
+     * TermCons are actually similar to KApp. It just have a strange structure.
+     * Read the things in KApp to know the implementation detail.
+     * People in K group to store something in TermCons because
+     * they want to save their parsing time.
+     * The store structure of termcons can be divided into two different categories.
+     * If the termCons is a list declration type such as A,B,C,its store structure
+     * is different from if the termCons has normal type.
+     * Read the visit function carefully to know the detail.
+     * However, we need to know that the concepts of the termCons have no difference with
+     * the concepts of KApp.
+     */
     public Void visit(TermCons termCons, Void _void) {
         Production production = termCons.getProduction();
         if (production.isListDecl()) {

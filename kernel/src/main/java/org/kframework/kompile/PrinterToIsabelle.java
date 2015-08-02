@@ -922,6 +922,12 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.Bag, java.lang.Object)
+     * the bag visitor is a list of cells.
+     * We just visit it by call cell visitor function in each child of the Bag
+     */
     public Void visit(Bag bag, Void _void) {
         for (int i = 0; i < bag.getContents().size(); ++i) {
             this.visit((Term)(bag.getContents().get(i)), _void);
@@ -945,6 +951,19 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.KList, java.lang.Object)
+     * KList visitor is a list of KSequence.
+     * In K, we have
+     * KSequence (which is the same as K) = KItem list
+     * KItem = klabel(KList)
+     * KList = KSequence list
+     * 
+     * However, the K cell usually start at the level of K
+     * 
+     * We need to call visitor of KSequence on each child of the klist.
+     */
     public Void visit(KList listOfK, Void _void) {
         java.util.List<Term> termList = listOfK.getContents();
         for (int i = 0; i < termList.size(); ++i) {
@@ -959,6 +978,31 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.KApp, java.lang.Object)
+     * KApp visitor is equal to KItem.
+     * Its form is like 
+     * KApp(KItem) = klabel(KList)
+     * 
+     * this visitor function will call
+     * the KLabelConstant visitor function for the klabel
+     * and the Klist visitor function for the kList
+     * 
+     * However, there are special cases.
+     * 
+     * a KApp could be a token, In K, token is viewed as KApp
+     * 
+     * for example, when we see the rule
+     * rule A => 1
+     * the 1 is really a token (interger token), then it is acutally a KApp
+     * in K, and it will be print out in the internal like 1(.KList)
+     * 
+     * However, we don't want that in Isabelle. We need to print out 1 as 1
+     * in Isabelle. so we need to avoid printing out the KList part when we found that
+     * the klabel is actually a token in KAPP
+     * In this case, the KAPP will use token visitor functions for its klabel part.
+     */
     public Void visit(KApp kapp, Void _void) {
     	System.out.print("(");
     	if(kapp.getLabel() instanceof KLabelConstant
@@ -986,11 +1030,43 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.KLabelConstant, java.lang.Object)
+     * for the klabel in a KApp = klabel(KList) structure.
+     */
     public Void visit(KLabelConstant kLabelConstant, Void _void) {
         System.out.print(this.generateName(kLabelConstant.getLabel()));
         return null;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.KSequence, java.lang.Object)
+     * KSequence is a list of KApp (or KItem), we need to visit the each child of the KSequence
+     * by KApp visitor function.
+     * The problem is that in K, we can write something like:
+     * 
+     * rule A:AExp => 1
+     * rule B:BExp => 2
+     * 
+     * where A and B are two different sorts and 1 and 2 belong to interger sort which is
+     * different from AExp and BExp.
+     * 
+     * In Isabelle, we need to have unique sort relation in LHS and RHS of each rule.
+     * 
+     * Hence, we need to normalize the sort, for the rules above, we need to print out like
+     * 
+     * rule (AExpKItem A)#[] => (IntKItem 1)#[]
+     * rule (BExpKItem B)#[] => (IntKItem 2)#[]
+     * 
+     * where the AExpKItem, BExpKItem and IntKItem are all constructors and the meaning of them
+     * is to translate the AExp, BExp and Int terms into KItem terms.
+     * 
+     * In addition, since most LHS and RHS is written in the KSequence level, we
+     * must also make the RHS and LHS of Isabelle translation to be in the KSequence level
+     * by adding #[] in the end.
+     */
     public Void visit(KSequence ksequence, Void _void) {
         java.util.List<Term> contents = ksequence.getContents();
         System.out.print("(");
@@ -1022,6 +1098,11 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.ListBuiltin, java.lang.Object)
+     * belows are the buildtins and tokens functions.
+     */
     public Void visit(ListBuiltin node, Void p) throws RuntimeException {
         for (Term t : node.elementsLeft()) {
             this.visit(t, p);
@@ -1080,6 +1161,11 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         return null;
     }
     
+    /*
+     * this function is to deal with builtin functions
+     * Once we found out a given term is in the builtins of K, 
+     * we must print out them into a buildtin in Isabelle.
+     */
     private void dealWithBuiltins(ArrayList<Term> termList, String label, Void p){
     	if(label.equals("'_+Int_") || label.equals("'_+Float_")){
     		System.out.print("(");
@@ -1244,6 +1330,20 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	}
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.TermCons, java.lang.Object)
+     * TermCons are actually similar to KApp. It just have a strange structure.
+     * Read the things in KApp to know the implementation detail.
+     * People in K group to store something in TermCons because
+     * they want to save their parsing time.
+     * The store structure of termcons can be divided into two different categories.
+     * If the termCons is a list declration type such as A,B,C,its store structure
+     * is different from if the termCons has normal type.
+     * Read the visit function carefully to know the detail.
+     * However, we need to know that the concepts of the termCons have no difference with
+     * the concepts of KApp.
+     */
     public Void visit(TermCons termCons, Void _void) {
         Production production = termCons.getProduction();
         if (production.isListDecl()) {

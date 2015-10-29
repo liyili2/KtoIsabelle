@@ -1,5 +1,7 @@
 package org.kframework.kompile;
 
-public interface GlobalElement {
+import org.kframework.kil.NonTerminal;
 
+public interface GlobalElement {
+	public NonTerminal getResultSort();
 }

@@ -109,6 +109,10 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 	 */
 	Map<String, List<Rule>> functionMap;
 	
+	Map<NonTerminal, List<GlobalElement>> elementMap;
+	List<FunctionElement> theFunctionDecls;
+	List<GlobalElement> kResultProductions;
+	
 	public PrinterToIsabelle(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub
@@ -122,6 +126,11 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 		this.functionMap = new HashMap<String, List<Rule>>();
 		labelSet = new HashSet<String>();
 		resultMap = new HashMap<NonTerminal, String>();
+		this.theFunctionDecls = ((Element)element).functionDecls;
+		this.kResultProductions = ((Element)element).kResultProductions;
+		this.elementMap
+		     = ((Element)element).theMap;
+		/*
 		ArrayList<NonTerminal> tempList = new ArrayList<NonTerminal>
 		    (((Element)this.theElement).theMap.keySet());
 		
@@ -138,7 +147,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 				((Element)this.theElement).theMap.remove(n);
 			}
 		}
-		
+		*/
 		builtinLabelSet = new HashSet<String>();
 		builtinLabelSet.add("'_+Int_");
 		builtinLabelSet.add("'_*Int_");
@@ -341,6 +350,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * That is why in the code of printDatatype, we need to keep track of listSortMap
      * and resultMap
      */
+    /*
     private void printDatatype(){
 		ArrayList<NonTerminal> termList
             = new ArrayList<NonTerminal>(((Element)this.theElement).theMap.keySet());
@@ -445,7 +455,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         	}
         }
     }
-    
+    */
     /*
      * this function is to print out all the KItems in Isabelle
      * In K, we have a implicit sort K and KItem.
@@ -458,6 +468,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * We need to know all the sorts in a definition in order to print out
      * a KItem constructor production for each sort.
      */
+    /*
     private void printKItem(){
     	System.out.print("datatype KItem = ");
 		ArrayList<NonTerminal> termList
@@ -475,7 +486,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         System.out.println(" IdKItem Id");
         System.out.println("type_synonym K = \"KItem list\"");
     }
-    
+    */
 	/*
 	 * this function takes a production and to generate a klabel
 	 * for the input production.
@@ -576,6 +587,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * 
      * etc
      */
+    /*
     private void printFunctions(Void p){
         for(FunctionElement f : ((Element)this.theElement).functionDecls){
         	ArrayList<Rule> terms = (ArrayList<Rule>) this.functionMap.get(f.klabel);
@@ -612,7 +624,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         	}
         }
     }
-    
+    */
     /*
      * this function will change the name of symbols in K
      * to name of english characters in Isabelle.
@@ -691,8 +703,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         		+"(infixl \"[+]\" 60)");
         System.out.println("where \"A [+] B \\<equiv>"
         		+"(A \\<and> \\<not> B) \\<or> (\\<not> A \\<and> B)\"");
-        printDatatype();
-        printKItem();
+        //printDatatype();
+        //printKItem();
         System.out.println("datatype MapItem = Mapsto KItem K");
         System.out.println("type_synonym Map = \"MapItem list\"");
         System.out.println("datatype SetElem = SetItem K");
@@ -740,7 +752,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         //print out the label set labels as a datatype
         printCellDatatype();
         System.out.println();
-        printFunctions(_void);
+        //printFunctions(_void);
         System.out.println();
         System.out.println("inductive "+this.inductiveName+"TheRule where");
         for (int i = 0; i < ruleList.size(); ++i) {
@@ -1102,7 +1114,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * (non-Javadoc)
      * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.ListBuiltin, java.lang.Object)
      * belows are the buildtins and tokens functions.
-     */
+     
     public Void visit(ListBuiltin node, Void p) throws RuntimeException {
         for (Term t : node.elementsLeft()) {
             this.visit(t, p);
@@ -1136,7 +1148,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         }
         return null;
     }
-    
+    */
     public Void visit(IntBuiltin node, Void p) {
     	System.out.print(" "+node.value()+" ");
         return null;
@@ -1343,7 +1355,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * Read the visit function carefully to know the detail.
      * However, we need to know that the concepts of the termCons have no difference with
      * the concepts of KApp.
-     */
+     
     public Void visit(TermCons termCons, Void _void) {
         Production production = termCons.getProduction();
         if (production.isListDecl()) {
@@ -1425,4 +1437,5 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         }
         return null;
     }
+    */
 }

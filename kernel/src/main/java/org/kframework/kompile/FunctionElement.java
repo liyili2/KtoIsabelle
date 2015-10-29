@@ -16,4 +16,10 @@ public class FunctionElement implements GlobalElement {
 		arguments = a;
 		result = r;
 	}
+
+	@Override
+	public NonTerminal getResultSort() {
+		// TODO Auto-generated method stub
+		return result;
+	}
 }

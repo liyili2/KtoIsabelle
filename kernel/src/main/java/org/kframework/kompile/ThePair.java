@@ -18,4 +18,10 @@ public class ThePair implements GlobalElement {
 		this.sort = sort;
 		this.production = production;
 	}
+
+	@Override
+	public NonTerminal getResultSort() {
+		// TODO Auto-generated method stub
+		return sort;
+	}
 }

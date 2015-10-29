@@ -4,31 +4,37 @@ import java.util.*;
 import org.kframework.kil.*;
 
 public class Element implements GlobalElement {
-	HashMap<NonTerminal, List<Production>> theMap;
+	HashMap<NonTerminal, List<GlobalElement>> theMap;
 	List<FunctionElement> functionDecls;
-	List<Production> kResultProductions;
+	List<GlobalElement> kResultProductions;
 	
 	public Element(){
-		theMap = new HashMap<NonTerminal, List<Production>>();
+		theMap = new HashMap<NonTerminal, List<GlobalElement>>();
 		functionDecls = new ArrayList<FunctionElement>();
-		kResultProductions = new ArrayList<Production>();
+		kResultProductions = new ArrayList<GlobalElement>();
 	}
 	
-	public void add(NonTerminal key, Production value){
-		
-		if(theMap.get(key) == null){
-			ArrayList<Production> newValue = new ArrayList<Production>();
-			newValue.add(value);
-			theMap.put(key, newValue);
-			return;
-		}
-		
-		theMap.get(key).add(value);
+	public void addKResult(GlobalElement result){
+		this.kResultProductions.add(result);
 	}
 	
-	public void add(String k, List<NonTerminal> a, NonTerminal r){
-		
-		FunctionElement result = new FunctionElement(k,a,r);
+	public void addFunction(FunctionElement result){
 		this.functionDecls.add(result);
+	}
+	
+	public void addSort(NonTerminal key, GlobalElement result){
+		if(this.theMap.containsKey(key)){
+			this.theMap.get(key).add(result);
+		} else {
+			List<GlobalElement> resultList = new ArrayList<GlobalElement>();
+			resultList.add(result);
+			this.theMap.put(key, resultList);
+		}
+	}
+
+	@Override
+	public NonTerminal getResultSort() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

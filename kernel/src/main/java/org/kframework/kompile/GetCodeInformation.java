@@ -1,14 +1,22 @@
 package org.kframework.kompile;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
+import org.kframework.compile.utils.SyntaxByTag;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.*;
+import org.kframework.utils.errorsystem.KExceptionManager;
 
 public class GetCodeInformation
           extends AbstractVisitor<Void, GlobalElement, RuntimeException> {
 
+    private static final String STRICT = "strict";
+    private static final String SEQSTRICT = "seqstrict";
+
+    
 	public GetCodeInformation(Context context) {
 		super(context);
 		// TODO Auto-generated constructor stub
@@ -144,13 +152,109 @@ public class GetCodeInformation
     				new FunctionElement(generateKLabel(items.get(0)),
     						generateName(generateKLabel(items.get(0))), arguments,node.getChild(null));
     		return result;
+    	} else if(((Production)(((PriorityBlock)(node.getPriorityBlocks().
+				get(0))).getProductions().get(0))).isSubsort()){
+    		if(((Production)(((PriorityBlock)(node.getPriorityBlocks().
+    				get(0))).getProductions().get(0))).getItems().get(0) instanceof NonTerminal){
+    			SubSortElement result = 
+    					new SubSortElement(node.getChild(null).toString()
+    							+"Of"+((Production)(((PriorityBlock)(node.getPriorityBlocks().
+        				get(0))).getProductions().get(0))).getItems().get(0).toString()
+        				,(NonTerminal) ((Production)(((PriorityBlock)(node.getPriorityBlocks().
+        						get(0))).getProductions().get(0))).getItems().get(0)
+        						,node.getChild(null));
+    			return result;
+    		}
     	} else {
-    		ThePair aPair = new ThePair();
-        	aPair.add((NonTerminal)node.getChild(null),
-        			(Production)(((PriorityBlock)(node.getPriorityBlocks().
-        					get(0))).getProductions().get(0)));
-        	return aPair;
+    		if(((Production)(((PriorityBlock)(node.getPriorityBlocks().
+				get(0))).getProductions().get(0))).isListDecl()){
+    			Production production = ((Production)(((PriorityBlock)(node.getPriorityBlocks().
+    					get(0))).getProductions().get(0)));
+                UserList userList = (UserList) production.getItems().get(0);
+                String separator = "'_"+userList.getSeparator()+"_";
+                String terminator = "."+userList.getSort().toString();
+                NonTerminal contentType = new NonTerminal(userList.getSort());
+                Set<Production> checkStrict = SyntaxByTag.get(node, STRICT, context);
+                checkStrict.addAll(SyntaxByTag.get(node, SEQSTRICT, context));
+                if(checkStrict.isEmpty()){
+                	return new ListElement(separator,this.generateName(separator)
+                    		,terminator,this.generateName(terminator),contentType,node.getChild(null),false);
+                }
+                return new ListElement(separator,this.generateName(separator)
+                		,terminator,this.generateName(terminator),contentType,node.getChild(null),true);
+    		}
+    		
+    		Production production = ((Production)(((PriorityBlock)(node.getPriorityBlocks().
+    				get(0))).getProductions().get(0)));
+    		List<NonTerminal> arguments = new ArrayList<NonTerminal>();
+    		for(int i = 0; i < production.getItems().size(); ++i){
+    			if(production.getItems().get(i) instanceof NonTerminal){
+    				arguments.add((NonTerminal) production.getItems().get(i));
+    			}
+    		}
+
+            Set<Production> checkStrict = SyntaxByTag.get(node, STRICT, context);
+            checkStrict.addAll(SyntaxByTag.get(node, SEQSTRICT, context));
+            List<Integer> strictnessPositions = new ArrayList<>();
+            
+            //do some checks on strictness rules.
+            if(!checkStrict.isEmpty()){
+            	if (!(production.getSort().isComputationSort()
+                		|| production.getSort().equals(Sort.KLABEL))) {
+                    throw KExceptionManager.compilerError(
+                            "only productions of sort K, sort KLabel or of syntactic sorts can have "
+                                    + "strictness attributes",
+                            this, production);
+                }
+
+                if (production.isSubsort()) {
+                    throw KExceptionManager.compilerError(
+                            "Production is a subsort and cannot be strict.",
+                            this, production);
+                }
+
+                if (production.isConstant() && !production.getSort().equals(Sort.KLABEL)) {
+                    throw KExceptionManager.compilerError(
+                            "Production is a constant and cannot be strict.",
+                            this, production);
+                }
+                
+                boolean isSeq = production.containsAttribute(SEQSTRICT);
+                final String strictType;
+                if (!isSeq) {
+                    strictType = STRICT;
+                } else {
+                    strictType = SEQSTRICT;
+                }
+                
+                String attribute = production.getAttribute(strictType);
+                String[] strictAttrs = null;
+                int arity = production.getArityOfKItem();
+                
+                if (attribute.isEmpty()) {
+                    for (int i = 1; i <= arity; i++) {
+                        strictnessPositions.add(i);
+                    }
+                } else {
+                    strictAttrs = attribute.split(",");
+                    for (String strictAttr : strictAttrs) {
+                        try {
+                            strictnessPositions.add(Integer.parseInt(strictAttr.trim()));
+                        } catch (NumberFormatException e) {
+                            throw KExceptionManager.compilerError(
+                                    "Expecting a number between 1 and "
+                            + arity + ", but found " + strictAttr + " as a" +
+                                            " strict position in " + Arrays.toString(strictAttrs),
+                                    this, production);
+                        }
+                    }
+                }
+            }
+    		return new NormalElement(generateKLabel(production)
+    				,generateName(generateKLabel(production))
+    				,arguments,node.getChild(null),strictnessPositions);
     	}
+    	return new ThePair();
     }
     
     /*
@@ -166,11 +270,12 @@ public class GetCodeInformation
     		if(node.getItems().get(i) instanceof Syntax){
     			GlobalElement aPair = this.visit((Syntax)node.getItems().get(i));
     			if(aPair instanceof ThePair){
-    				syntaxElement.add(((ThePair)aPair).sort,
-    						((ThePair)aPair).production);
     			} else if(aPair instanceof FunctionElement){
-    				syntaxElement.add(((FunctionElement)aPair).klabel
-    						, ((FunctionElement)aPair).arguments, ((FunctionElement)aPair).result);
+    				syntaxElement.addFunction(((FunctionElement)aPair));
+    			} else if(aPair.getResultSort().getSort().equals(Sort.KRESULT)){
+    				syntaxElement.addKResult(aPair);
+    			} else {
+    				syntaxElement.addSort(aPair.getResultSort(), aPair);
     			}
     		}
     	}

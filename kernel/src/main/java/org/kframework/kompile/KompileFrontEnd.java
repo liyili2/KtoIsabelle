@@ -144,6 +144,8 @@ public class KompileFrontEnd extends FrontEnd {
         }
         GetCodeInformation theGetter = new GetCodeInformation(context);
         GlobalElement theElement = theGetter.visit(javaDef);
+        System.out.println(javaDef.toString());
+        System.exit(0);
         //System.out.println(((Element)theElement).kResultProductions);
         //System.out.println(javaDef.toString());
         //System.exit(0);

@@ -6,11 +6,13 @@ import org.kframework.kil.NonTerminal;
 
 public class FunctionElement implements GlobalElement {
 	String klabel;
+	String isabelleLabel;
 	List<NonTerminal> arguments;
 	NonTerminal result;
 	
-	public FunctionElement(String k, List<NonTerminal> a, NonTerminal r){
+	public FunctionElement(String k,String isabelleLabel, List<NonTerminal> a, NonTerminal r){
 		klabel = k;
+		this.isabelleLabel = isabelleLabel;
 		arguments = a;
 		result = r;
 	}

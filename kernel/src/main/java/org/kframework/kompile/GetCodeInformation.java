@@ -14,6 +14,67 @@ public class GetCodeInformation
 		// TODO Auto-generated constructor stub
 	}
 	
+    /*
+     * this function will change the name of symbols in K
+     * to name of english characters in Isabelle.
+     */
+    private String generateName(String t){
+    	
+    	String value = "";
+    	for(int i = 0; i < t.length(); ++i) {
+    		if(t.charAt(i) == '\''){
+    			if(i != 0) {
+    				value += "Top";
+    			}
+    		} else if (t.charAt(i) == '_') {
+    			value += "X";
+    		} else if(t.charAt(i) == '(' || t.charAt(i) == ')') {
+    			value += "Br";
+    		} else if(t.charAt(i) == '{' || t.charAt(i) == '}') {
+    			value += "Bl";
+    		} else if(t.charAt(i) == '[' || t.charAt(i) == ']') {
+    			value += "Bm";
+    		} else if(t.charAt(i) == '=') {
+    			value += "Eq";
+    		} else if(t.charAt(i) == '|') {
+    			value += "Sl";
+    		} else if(t.charAt(i) == '&') {
+    			value += "An";
+    		} else if(t.charAt(i) == '@') {
+    			value += "At";
+    		} else if(t.charAt(i) == '*') {
+    			value += "Times";
+    		} else if(t.charAt(i) == '+') {
+    			value += "Plus";
+    		} else if(t.charAt(i) == '-') {
+    			value += "Minus";
+    		} else if(t.charAt(i) == '/') {
+    			value += "Div";
+    		} else if(t.charAt(i) == '<') {
+    			value += "Less";
+    		} else if(t.charAt(i) == '>') {
+    			value += "Greater";
+    		} else if(t.charAt(i) == '!') {
+    			value += "Not";
+    		} else if(t.charAt(i) == ';') {
+    			value += "End";
+    		} else if(t.charAt(i) == ':') {
+    			value += "To";
+    		} else {
+    			value += t.charAt(i);
+    		}
+    	}
+    	if(value.length() >= 1) {
+    		if(value.charAt(0) <= 'z' && value.charAt(0) >= 'a') {
+    			value = value.substring(0, 1).toUpperCase()
+    					+ value.substring(1, value.length());
+    		} else if(value.charAt(0) <= '9' && value.charAt(0) >= '0'){
+    			value = "Num"+value;
+    		}
+    	}
+    	return value;
+    }
+	
 	/*
 	 * this class is a visitor pattern to collect
 	 * the information from a syntax.
@@ -80,7 +141,8 @@ public class GetCodeInformation
     			}
     		}
     		FunctionElement result =
-    				new FunctionElement(generateKLabel(items.get(0)),arguments,node.getChild(null));
+    				new FunctionElement(generateKLabel(items.get(0)),
+    						generateName(generateKLabel(items.get(0))), arguments,node.getChild(null));
     		return result;
     	} else {
     		ThePair aPair = new ThePair();

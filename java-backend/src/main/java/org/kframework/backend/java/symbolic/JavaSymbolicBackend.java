@@ -114,7 +114,9 @@ public class JavaSymbolicBackend extends BasicBackend {
         steps.add(new CheckVisitorStep<Definition>(new CollectProductionsVisitor(context), context));
         steps.add(new CheckVisitorStep<Definition>(new CollectSubsortsVisitor(context), context));
         steps.add(new CheckVisitorStep<Definition>(new CollectBracketsVisitor(context), context));
+        steps.add(new AddInjections(context));
 
+/*will need this in the future.
         steps.add(new GeneratedHeatingCoolingRules(context));
         
        // steps.add(new FreezeUserFreezers(context));
@@ -134,22 +136,29 @@ public class JavaSymbolicBackend extends BasicBackend {
         // steps.add(new ResolveFresh());
         //steps.add(new FreshCondToFreshVar(context));
         //steps.add(new ResolveFreshVarMOS(context));
+*/
 
          //fast rewriting related stuff
+        /*
+         * wiill need this in the future.
         steps.add(new ComputeCellsOfInterest(context));
 
         steps.add(new AddTopCellConfig(context));
         
         steps.add(new AddTopCellRules(context));
+*/
+        /*        need this in the future.
 
         steps.add(new ResolveBinder(context));
         steps.add(new ResolveAnonymousVariables(context));
+        */
         //steps.add(new AddK2SMTLib(context));
         //steps.add(new ResolveSyntaxPredicates(context));
         //steps.add(new ResolveBuiltins(context));
+        /*will need this in the future.
         steps.add(new ResolveListOfK(context));
-        steps.add(new AddInjections(context));
-
+        */
+/* will need the following in the future.
        // steps.add(new FlattenSyntax(context));
         steps.add(new ResolveBlockingInput(context, kem));
         steps.add(new InitializeConfigurationStructure(context));

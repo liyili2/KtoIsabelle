@@ -276,6 +276,12 @@ public class GetCodeInformation
     				syntaxElement.addKResult(aPair);
     			} else {
     				syntaxElement.addSort(aPair.getResultSort(), aPair);
+    				List<NonTerminal> subSorts = aPair.getSubSorts();
+    				if(subSorts != null){
+    					for(int index = 0; index < subSorts.size(); ++index){
+    						syntaxElement.addToGraph(aPair.getResultSort(), subSorts.get(index));
+    					}
+    				}
     			}
     		}
     	}

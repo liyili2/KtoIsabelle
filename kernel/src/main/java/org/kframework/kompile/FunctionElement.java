@@ -22,4 +22,10 @@ public class FunctionElement implements GlobalElement {
 		// TODO Auto-generated method stub
 		return result;
 	}
+
+	@Override
+	public List getSubSorts() {
+		// TODO Auto-generated method stub
+		return null;
+	}	
 }

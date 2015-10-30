@@ -1,5 +1,7 @@
 package org.kframework.kompile;
 
+import java.util.List;
+
 import org.kframework.kil.NonTerminal;
 import org.kframework.kil.Production;
 
@@ -23,5 +25,11 @@ public class ThePair implements GlobalElement {
 	public NonTerminal getResultSort() {
 		// TODO Auto-generated method stub
 		return sort;
+	}
+
+	@Override
+	public List getSubSorts() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

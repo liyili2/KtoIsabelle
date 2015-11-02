@@ -21,6 +21,12 @@ public class Graph<V> {
 		vertexList = new ArrayList<V>();
 	}
 	
+	public Graph(Graph<V> g){
+		this.directed = g.directed;
+		this.vertexList = new ArrayList<V>(g.vertexList);
+		this.adjacencyList = new HashMap<V, ArrayList<Edge<V>>>(g.adjacencyList);
+	}
+	
 	public void add(V vertex) {
 		
 		if(vertexList.contains(vertex))
@@ -127,6 +133,15 @@ public class Graph<V> {
 		return returnList;
 	}
 	
+	//return indices of edges
+	public ArrayList<Integer> getAdjacentIndices(V vertex){
+		ArrayList<Integer> returnList = new ArrayList<Integer>();
+		for (Edge<V> edge : adjacencyList.get(vertex)) {
+			returnList.add(this.vertexList.indexOf(edge.getVertex()));
+		}
+		return returnList;
+	}
+	
 	public double getDistanceBetween(V source, V end){
 		 for (Edge<V> edge : adjacencyList.get(source)) {
 			if (edge.getVertex() == end){
@@ -138,6 +153,14 @@ public class Graph<V> {
 	
 	public ArrayList<V> getVertexList() {
 		return vertexList;
+	}
+	
+	public void removeVertex(V vertex){
+		this.vertexList.remove(vertex);
+		this.adjacencyList.remove(vertex);
+		for(int i = 0; i < this.vertexList.size(); ++i){
+			this.adjacencyList.get(this.vertexList.get(i)).remove(vertex);
+		}
 	}
 	
 	public String toString() {

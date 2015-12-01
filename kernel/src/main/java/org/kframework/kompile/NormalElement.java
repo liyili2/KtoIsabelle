@@ -31,4 +31,10 @@ public class NormalElement implements GlobalElement {
 		// TODO Auto-generated method stub
 		return arguments;
 	}
+
+	@Override
+	public String getIsabelleLabel() {
+		// TODO Auto-generated method stub
+		return this.isabelleLabel;
+	}
 }

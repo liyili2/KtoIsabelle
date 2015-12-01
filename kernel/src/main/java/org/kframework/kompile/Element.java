@@ -52,4 +52,10 @@ public class Element implements GlobalElement {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	@Override
+	public String getIsabelleLabel() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

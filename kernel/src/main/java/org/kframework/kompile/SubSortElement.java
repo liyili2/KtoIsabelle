@@ -29,4 +29,10 @@ public class SubSortElement implements GlobalElement {
 		result.add(argument);
 		return result;
 	}
+
+	@Override
+	public String getIsabelleLabel() {
+		// TODO Auto-generated method stub
+		return isabelleLabel;
+	}
 }

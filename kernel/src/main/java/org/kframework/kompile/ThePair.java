@@ -11,8 +11,14 @@ public class ThePair implements GlobalElement {
 	// the right part of the "::="
 	Production production;
 	
+	String isabelleLabel;
+	
 	public ThePair(){
 		
+	}
+	
+	public ThePair(String label){
+		this.isabelleLabel = label;
 	}
 	
 	public void add(NonTerminal sort, Production production){
@@ -31,5 +37,11 @@ public class ThePair implements GlobalElement {
 	public List getSubSorts() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public String getIsabelleLabel() {
+		// TODO Auto-generated method stub
+		return this.isabelleLabel;
 	}
 }

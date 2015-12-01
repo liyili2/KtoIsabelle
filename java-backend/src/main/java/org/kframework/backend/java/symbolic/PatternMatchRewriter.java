@@ -271,6 +271,7 @@ public class PatternMatchRewriter {
                             if (rule.modifyCellStructure()) {
                                 computeIndexingCells(subject, termContext);
                             }
+                            System.out.println("the Rule is:"+rule.getSource()+","+rule.getLocation());
                             return;
                         }
                     } catch (KEMException e) {

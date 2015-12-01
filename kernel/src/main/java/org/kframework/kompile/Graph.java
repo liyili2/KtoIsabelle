@@ -2,6 +2,8 @@ package org.kframework.kompile;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 public class Graph<V> {
 
@@ -91,8 +93,19 @@ public class Graph<V> {
 		}
 		
 
-		adjacencyList.get(source).add(new Edge<V>(end, weight));
+		if(!containEdge(this.adjacencyList.get(source), end)){
+			adjacencyList.get(source).add(new Edge<V>(end, weight));
+		}
 		return true;
+	}
+	
+	public boolean containEdge(ArrayList<Edge<V>> edges, V end){
+		for(int i = 0; i < edges.size(); ++i){
+			if(edges.get(i).getVertex().equals(end)){
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean addEdge(V vertexOne, V vertexTwo, int weight) {
@@ -159,7 +172,14 @@ public class Graph<V> {
 		this.vertexList.remove(vertex);
 		this.adjacencyList.remove(vertex);
 		for(int i = 0; i < this.vertexList.size(); ++i){
-			this.adjacencyList.get(this.vertexList.get(i)).remove(vertex);
+			for(int j = 0; j < this.adjacencyList
+					.get(this.vertexList.get(i)).size(); ++j){
+				if(this.adjacencyList
+					.get(this.vertexList.get(i)).get(j).getVertex().equals(vertex)){
+					this.adjacencyList.get(this.vertexList.get(i))
+					.remove(this.adjacencyList.get(this.vertexList.get(i)).get(j));
+				}
+			}
 		}
 	}
 	

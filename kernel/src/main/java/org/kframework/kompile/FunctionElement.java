@@ -27,5 +27,11 @@ public class FunctionElement implements GlobalElement {
 	public List getSubSorts() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public String getIsabelleLabel() {
+		// TODO Auto-generated method stub
+		return isabelleLabel;
 	}	
 }

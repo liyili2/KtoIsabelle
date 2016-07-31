@@ -97,6 +97,7 @@ public class JavaSymbolicBackend extends BasicBackend {
         CompilerSteps<Definition> steps = new CompilerSteps<Definition>(context);
         
         steps.add(new FirstStep(this, context));
+        /*
         steps.add(new CheckVisitorStep<Definition>(new CheckConfigurationCells(context), context));
         steps.add(new RemoveBrackets(context));
         // SetVariablesInferredSort must be performed before AddEmptyLists
@@ -116,7 +117,7 @@ public class JavaSymbolicBackend extends BasicBackend {
         steps.add(new CheckVisitorStep<Definition>(new CollectBracketsVisitor(context), context));
         steps.add(new AddInjections(context));
 
-/*will need this in the future.
+will need this in the future.
         steps.add(new GeneratedHeatingCoolingRules(context));
         
        // steps.add(new FreezeUserFreezers(context));

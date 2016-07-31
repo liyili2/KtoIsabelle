@@ -124,6 +124,7 @@ public class KompileFrontEnd extends FrontEnd {
         Backend b = backend.get();
         CompilerSteps<Definition> steps = b.getCompilationSteps();
 
+        /*
         ArrayList abc = (ArrayList) javaDef.getItems();
         List<org.kframework.kil.DefinitionItem> newList = new ArrayList<>();
         for(int i = 0; i < abc.size();++i){
@@ -134,6 +135,7 @@ public class KompileFrontEnd extends FrontEnd {
         	}
         }
         javaDef.setItems(newList);
+        */
         if (step == null) {
             step = b.getDefaultStep();
         }
@@ -142,15 +144,19 @@ public class KompileFrontEnd extends FrontEnd {
         } catch (CompilerStepDone e) {
             javaDef = (Definition) e.getResult();
         }
+        System.out.println(javaDef.toString());
+        /*
         GetCodeInformation theGetter = new GetCodeInformation(context);
         GlobalElement theElement = theGetter.visit(javaDef);
         //System.out.println(((Element)theElement).kResultProductions);
         //System.out.println(javaDef.toString());
+         * 
+         */
         //System.exit(0);
         //System.out.println("Generated code is:"+((Element)theElement).theMap.toString());
         //System.out.println(step);
-        PrinterToIsabelle printer = new PrinterToIsabelle(context, theElement);
-        printer.visit(javaDef, null);
+        //PrinterToIsabelle printer = new PrinterToIsabelle(context, theElement);
+        //printer.visit(javaDef, null);
         System.exit(0);
         loader.saveOrDie(files.resolveKompiled("configuration.bin"),
                 MetaK.getConfiguration(javaDef, context));

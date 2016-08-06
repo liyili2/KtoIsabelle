@@ -17,25 +17,32 @@ import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.Definition;
 import org.kframework.kil.DefinitionItem;
 import org.kframework.kil.FloatBuiltin;
+import org.kframework.kil.Import;
 import org.kframework.kil.IntBuiltin;
 import org.kframework.kil.KApp;
 import org.kframework.kil.KInjectedLabel;
 import org.kframework.kil.KLabelConstant;
 import org.kframework.kil.KList;
 import org.kframework.kil.KSequence;
+import org.kframework.kil.Lexical;
 import org.kframework.kil.ListBuiltin;
 import org.kframework.kil.ListTerminator;
+import org.kframework.kil.LiterateDefinitionComment;
+import org.kframework.kil.LiterateModuleComment;
 import org.kframework.kil.MapBuiltin;
 import org.kframework.kil.Module;
 import org.kframework.kil.ModuleItem;
 import org.kframework.kil.NonTerminal;
+import org.kframework.kil.PriorityBlock;
 import org.kframework.kil.Production;
 import org.kframework.kil.ProductionItem;
+import org.kframework.kil.Require;
 import org.kframework.kil.Rewrite;
 import org.kframework.kil.Rule;
 import org.kframework.kil.SetBuiltin;
 import org.kframework.kil.Sort;
 import org.kframework.kil.StringBuiltin;
+import org.kframework.kil.Syntax;
 import org.kframework.kil.Term;
 import org.kframework.kil.TermCons;
 import org.kframework.kil.Terminal;
@@ -297,6 +304,18 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	return null;
     }
     
+    public Void visit(Require req, Void _void) {
+    	
+    	System.out.println("Require \""+ req.getValue()+"\"");
+    	return null;
+    }
+    
+    public Void visit(LiterateDefinitionComment ltc, Void _void) {
+    	
+    	System.out.println("DefComment \""+ ltc.getValue()+"\"");
+    	return null;
+    }
+    
     /*
      * (non-Javadoc)
      * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.Definition, java.lang.Object)
@@ -305,11 +324,24 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * one module in our definition.
      */
     public Void visit(Definition def, Void _void) {
-        for (DefinitionItem item : def.getItems()) {
-        	if(item instanceof Module){
-        		this.visit((Module)item, _void);
+    	
+    	System.out.print("Definition [ ");
+        for (int i = 0; i < def.getItems().size(); ++i){
+        	if(def.getItems().get(i) instanceof Module){
+        		this.visit((Module)(def.getItems().get(i)), _void);
         	}
+        	if(def.getItems().get(i) instanceof Require){
+        		this.visit((Require)(def.getItems().get(i)), _void);
+        	}
+        	if(def.getItems().get(i) instanceof LiterateDefinitionComment){
+        		this.visit((LiterateDefinitionComment)(def.getItems().get(i)), _void);
+        	}
+    		if(i != def.getItems().size() - 1){
+    			System.out.print(" ; ");
+    		}
         }
+        
+        System.out.println("]");
         return null;
     }
     
@@ -770,6 +802,122 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         System.out.println("\"kin a b = (a ∈ (kSetToSet b))\"");
     }
 
+    public Void visit(Import imp, Void _void) {
+    	System.out.println("Import ( ModId \""+imp.getName()+"\")");
+    	return null;
+    }
+    
+    public Void visit(LiterateModuleComment item, Void _void) {
+    	System.out.println("ModComment \""+item.getValue()+"\"");
+    	return null;
+    }
+    
+    public Void visit(UserList item, Void _void) {
+    	
+    	if(item.getListType().equals(UserList.ZERO_OR_MORE)){
+    		System.out.println("UserList (SortId \""+item.getSort().getName()
+        			+"\" , \""+item.getSeparator()+"\" , NormalList)");
+    	} else {
+    		System.out.println("UserList (SortId \""+item.getSort().getName()
+        			+"\" , \""+item.getSeparator()+"\" , NeList)");
+
+    	}
+    	return null;
+    }
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.Production, java.lang.Object)
+     * 
+     */
+    public Void visit(Production item, Void _void) {
+    	
+    	if(item.isListDecl()){
+    		this.visit((UserList) item.getItems().get(0), _void);
+    	} else if(item.isSyntacticSubsort()){
+    		if(item.isSubsort()){
+    			System.out.println("SubsortRelation (SortId \"" + ((NonTerminal)item.getItems().get(0)).getName() +"\")");
+    		} else {
+    			System.out.println("Normal [ "+item.getKLabel() +"; Terminal \"(\" ; NonTerminal (SortId \""
+    		               + ((NonTerminal)item.getItems().get(0)).getName() + "\") ; Terminal \")\" ]");
+    		}
+    	} else if (item.isLexical()){
+    		System.out.println("LexToken \""+ ((Lexical)item.getItems().get(0)).getLexicalRule() + "\"");
+    	} else if (item.isTerminal()){
+    		if(item.isConstant()){
+    			System.out.println("Constant (SortId \""+ item.getSort().getName() + "\", Terminal \""
+    		               + ((Terminal)item.getItems().get(0)).getTerminal() +"\")");
+    		}
+    		else {
+    			System.out.println("Normal [Terminal \"" + ((Terminal)item.getItems().get(0)).getTerminal() +"\"]");
+    		}
+    	} else if(item.isBracket()){
+    		System.out.print("Bracket [");
+    		for(int i = 0; i < item.getItems().size(); ++i){
+    			if(item.getItems().get(i) instanceof Terminal){
+    				System.out.println("Terminal \""+((Terminal)item.getItems().get(i)).getTerminal() + "\"");
+    			} else if(item.getItems().get(i) instanceof NonTerminal){
+    				System.out.println("NonTerminal (SortId \""+((NonTerminal)item.getItems().get(i)).getName() + "\")");
+    			}
+    			
+            	if(i != item.getItems().size() - 1){
+        			System.out.print(" ; ");
+        		}
+    		}
+    		System.out.println("]");
+    	} else {
+    		System.out.print("Normal [");
+    		for(int i = 0; i < item.getItems().size(); ++i){
+    			if(item.getItems().get(i) instanceof Terminal){
+    				System.out.println("Terminal \""+((Terminal)item.getItems().get(i)).getTerminal() + "\"");
+    			} else if(item.getItems().get(i) instanceof NonTerminal){
+    				System.out.println("NonTerminal (SortId \""+((NonTerminal)item.getItems().get(i)).getName() + "\")");
+    			}
+    			
+            	if(i != item.getItems().size() - 1){
+        			System.out.print(" ; ");
+        		}
+    		}
+    	}
+        
+    	return null;
+    }
+
+    
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.PriorityBlock, java.lang.Object)
+     * in printout the priority block, it is a ocaml structure with two fields
+     * the first field is a string to represent assoc, and the second one is a list of productions.
+     */
+    public Void visit(PriorityBlock item, Void _void) {
+    	System.out.print("PriorityBlock ( \"" +item.getAssoc()+"\", [");
+        for (int i = 0; i < item.getProductions().size(); ++i){
+        	this.visit((Production)item.getProductions().get(i), _void);
+    		if(i != item.getProductions().size() - 1){
+    			System.out.print(" ; ");
+    		}
+        }
+    	System.out.println("])");
+    }
+    
+    /*
+     * (non-Javadoc)
+     * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.Syntax, java.lang.Object)
+     * print out a list of priority blocks and the list is ordered list so that the formal
+     * element has higher priority in a grammar.
+     */
+    public Void visit(Syntax item, Void _void) {
+    	System.out.print("Syntax ( SortId \""+item.getDeclaredSort().getName()+"\", [");
+        for (int i = 0; i < item.getPriorityBlocks().size(); ++i){
+        	this.visit((PriorityBlock)item.getPriorityBlocks().get(i), _void);
+    		if(i != item.getPriorityBlocks().size() - 1){
+    			System.out.print(" ; ");
+    		}
+        }
+    	System.out.println("])");
+    	return null;
+    }
+    
     /*
      * The visitor module function will
      * print out the datatypes by using printDatatype function
@@ -778,67 +926,23 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * rules in K.
      */
     public Void visit(Module mod, Void _void) {
-        System.out.println("theory "+mod.getName().toUpperCase()+"\nimports Main Real");
-        System.out.println("begin\n");
-        
-        System.out.println("typedecl Id");
-        System.out.println("type_synonym Float = \"real\"");
-        System.out.println("definition xor :: \"bool \\<Rightarrow> bool \\<Rightarrow> bool\""
-        		+"(infixl \"[+]\" 60)");
-        System.out.println("where \"A [+] B \\<equiv>"
-        		+"(A \\<and> \\<not> B) \\<or> (\\<not> A \\<and> B)\"");
-        printDatatype();
-        printKItem();
-        printBuiltinItems();
-        
-        this.inductiveName = mod.getName().toLowerCase();
-        
-        ArrayList<Rule> ruleList = new ArrayList<Rule>();
-        for(ModuleItem item : mod.getItems()){
-        	if(item instanceof Rule){
-        		ruleList.add((Rule)item);
-        		/*
-            	if(((Rule)item).getBody() instanceof Rewrite){
-            		if((((Rewrite)(((Rule)item).getBody())).getLeft() instanceof Cell)){
-            			ruleList.add((Rule)item);
-            		} else if(((Rewrite)(((Rule)item)
-            				.getBody())).getLeft() instanceof TermCons
-            				&& ((Rule)item).containsAttribute("function")){
-            			String theLabel = this.generateKLabel(((TermCons)
-            					((Rewrite)(((Rule)item).
-            							getBody())).getLeft()).getProduction());
-            			if(this.functionMap.containsKey(theLabel)){
-            				this.functionMap.get(theLabel).add((Rule)item);
-            			} else {
-            				ArrayList<Rule> resultRules = new ArrayList<Rule>();
-            				resultRules.add((Rule)item);
-            				this.functionMap.put(theLabel, resultRules);
-            			}            			
-            		}
-            	}
-            	*/
-        	} else if(item instanceof Configuration){
-        		generateCellLabels((Cell)((Configuration)item).getBody());
+    	System.out.print("Module ( ModId \""+mod.getName()+"\", [ ");
+        for (int i = 0; i < mod.getItems().size(); ++i){
+        	if(mod.getItems().get(i) instanceof Import){
+        		this.visit((Import)(mod.getItems().get(i)), _void);;
         	}
-        }
-        
-        //print out the label set labels as a datatype
-        printCellDatatype();
-        System.out.println();
-        //printFunctions(_void);
-        System.out.println();
-        System.out.println("inductive "+this.inductiveName+"TheRule where");
-        System.out.println(ruleList.toString());
-        for (int i = 0; i < ruleList.size(); ++i) {
-            //System.out.println(item.getClass());
-        	this.visit(ruleList.get(i), _void);
-        	if(i != ruleList.size() - 1){
-        		System.out.print("| ");
+        	if(mod.getItems().get(i) instanceof LiterateModuleComment){
+        		this.visit((LiterateModuleComment)(mod.getItems().get(i)), _void);
         	}
+        	if(mod.getItems().get(i) instanceof Syntax){
+        		this.visit((Syntax)(mod.getItems().get(i)), _void);
+        	}
+    		if(i != mod.getItems().size() - 1){
+    			System.out.print(" ; ");
+    		}
         }
-        
-        System.out.println("\nend");
-        return null;
+    	System.out.println(" ])");
+    	return null;
     }
     
     /*

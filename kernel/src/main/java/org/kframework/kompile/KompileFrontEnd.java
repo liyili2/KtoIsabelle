@@ -144,7 +144,8 @@ public class KompileFrontEnd extends FrontEnd {
         } catch (CompilerStepDone e) {
             javaDef = (Definition) e.getResult();
         }
-        System.out.println(javaDef.toString());
+        PrinterToIsabelle printer = new PrinterToIsabelle(context);
+        printer.visit(javaDef, null);
         /*
         GetCodeInformation theGetter = new GetCodeInformation(context);
         GlobalElement theElement = theGetter.visit(javaDef);

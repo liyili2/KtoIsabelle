@@ -317,7 +317,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * Float in K will be real in Isabelle.
      * That is why we need this function
      * to print out the sort correctly for us.
-     */
+     
     private String correctSort(String name){
     	if(name.equals(Sort.INT.getName()))
     		return "int";
@@ -362,7 +362,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     		return true;
     	}
     	return false;
-    }
+    } */
     
     //this function print out all the datatype from theElement map.
     /*
@@ -416,6 +416,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * and resultMap
      */
     
+    /*
     private List<NonTerminal> deleteBuiltinSorts(List<NonTerminal> nextSorts){
     	ArrayList<NonTerminal> newResult = new ArrayList<NonTerminal>();
     	for(int i = 0; i < nextSorts.size(); ++i){
@@ -486,7 +487,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * We need to know all the sorts in a definition in order to print out
      * a KItem constructor production for each sort.
      */
-    
+    /*
     private void printKItem(){
     	System.out.print("datatype KResult = ");
     	for(int i = 0; i < ((Element)this.theElement).kResultProductions.size(); ++i){
@@ -546,7 +547,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 	 * the label and put it into the label string.
 	 * in the production is a terminal or a nonTerminal.
 	 * if the input production item is a terminal
-	 */
+	 
 	private String generateKLabel(Production item){
 		String label = "'";
 		for(ProductionItem p : item.getItems()){
@@ -734,6 +735,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	return value;
     }
     
+    /*
     private void printBuiltinItems(){
         System.out.println("fun stringplus where");
         System.out.println("\"stringplus (a::string) (b::string) = concat [a, b]\"");
@@ -763,8 +765,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 	            +"= insert A (kSetToSet l)\"");
         System.out.println("fun kin where");
         System.out.println("\"kin a b = (a ∈ (kSetToSet b))\"");
-    }
-
+    } */
+    
     public Void visit(Import imp, Void _void) {
     	System.out.println("Import ( ModId \""+imp.getName()+"\")");
     	return null;
@@ -791,9 +793,9 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     		} else if (valueList.get(i).getKey().equals(Attribute.SEQSTRICT_KEY)){
     			System.out.println("Seqstrict");
     		} else if (valueList.get(i).getKey().equals("left")){
-    			System.out.println("Leftassoc");
+    			System.out.println("LeftAssoc");
     		} else if (valueList.get(i).getKey().equals("right")){
-    			System.out.println("Rightassoc");
+    			System.out.println("RightAssoc");
     		} else if (valueList.get(i).getKey().equals("onlyLabel")){
     			System.out.println("OnlyLabel");
     			
@@ -923,7 +925,13 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * the first field is a string to represent assoc, and the second one is a list of productions.
      */
     public Void visit(PriorityBlock item, Void _void) {
-    	System.out.print("PriorityBlock ( \"" +item.getAssoc()+"\", [");
+    	if(item.getAssoc().equals("") || item.getAssoc().equals("non-assoc")){
+    		System.out.print("PriorityBlock ( NonAssoc, [");
+    	} else if(item.getAssoc().equals("left")){
+    	System.out.print("PriorityBlock ( LeftAssoc, [");
+    	} else if(item.getAssoc().equals("right")){
+        	System.out.print("PriorityBlock ( RightAssoc, [");
+    	}
         for (int i = 0; i < item.getProductions().size(); ++i){
         	this.visit((Production)item.getProductions().get(i), _void);
     		if(i != item.getProductions().size() - 1){
@@ -1034,8 +1042,9 @@ public class PrinterToIsabelle extends NonCachingVisitor {
             System.out.print("?");
         else if (variable.isFreshConstant())
         	System.out.print("!");
+        /*
         System.out.print(variable.getName()
-        		+"::" + this.correctSort(variable.getSort().toString()));
+        		+"::" + this.correctSort(variable.getSort().toString())); */
         System.out.print(")");
         return null;
     }

@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.kframework.kil.Attribute;
+import org.kframework.kil.Attribute.Key;
 import org.kframework.kil.Attributes;
 import org.kframework.kil.Bag;
 import org.kframework.kil.BoolBuiltin;
@@ -19,6 +20,7 @@ import org.kframework.kil.DataStructureSort;
 import org.kframework.kil.Definition;
 import org.kframework.kil.DefinitionItem;
 import org.kframework.kil.FloatBuiltin;
+import org.kframework.kil.Hole;
 import org.kframework.kil.Import;
 import org.kframework.kil.IntBuiltin;
 import org.kframework.kil.KApp;
@@ -55,6 +57,7 @@ import org.kframework.kil.Variable;
 import org.kframework.kil.loader.Context;
 import org.kframework.kil.visitors.NonCachingVisitor;
 import org.kframework.utils.ColorUtil;
+import org.kframework.utils.StringUtil;
 
 import com.sun.org.apache.xpath.internal.operations.Mod;
 
@@ -227,7 +230,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
 	 * then direct those terms into its correct visitor function. 
 	 */
     public Void visit(Term node, Void _void) {
-    	/*
+    	
     	if(node instanceof Rewrite){
     		this.visit((Rewrite)node, _void);
     	} else if(node instanceof Cell){
@@ -262,8 +265,15 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     		this.visit((SetBuiltin)node, _void);
     	} else if(node instanceof ListBuiltin){
     		this.visit((ListBuiltin)node, _void);
+    	} else if (node instanceof Hole){
+    		this.visit((Hole)node, _void);
     	}
-    	*/
+    	
+    	return null;
+    }
+    
+    public Void visit(Hole item, Void _void) {
+    	System.out.print("Hole (SortId \""+ item.getSort().getName() +"\")");
     	return null;
     }
     
@@ -677,7 +687,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     /*
      * this function will change the name of symbols in K
      * to name of english characters in Isabelle.
-     */
+     
     private String generateName(String t){
     	
     	String value = "";
@@ -734,6 +744,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	}
     	return value;
     }
+    */
     
     /*
     private void printBuiltinItems(){
@@ -790,24 +801,23 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     			System.out.println("Function");
     		} else if(valueList.get(i).equals(Attribute.MACRO)){
     			System.out.println("Macro");
-    		} else if (valueList.get(i).getKey().equals(Attribute.SEQSTRICT_KEY)){
+    		} else if (Key.toString(valueList.get(i).getKey().getAnnotation()).equals(Attribute.SEQSTRICT_KEY)){
     			System.out.println("Seqstrict");
-    		} else if (valueList.get(i).getKey().equals("left")){
+    		} else if (Key.toString(valueList.get(i).getKey().getAnnotation()).equals("left")){
     			System.out.println("LeftAssoc");
-    		} else if (valueList.get(i).getKey().equals("right")){
+    		} else if (Key.toString(valueList.get(i).getKey().getAnnotation()).equals("right")){
     			System.out.println("RightAssoc");
-    		} else if (valueList.get(i).getKey().equals("onlyLabel")){
+    		} else if (Key.toString(valueList.get(i).getKey().getAnnotation()).equals("onlyLabel")){
     			System.out.println("OnlyLabel");
-    			
-    		} else if (valueList.get(i).getKey().equals("cool")){
+    		} else if (Key.toString(valueList.get(i).getKey().getAnnotation()).equals("cool")){
     			System.out.println("CoolRule");
-    		} else if (valueList.get(i).getKey().equals("Heat")){
+    		} else if (Key.toString(valueList.get(i).getKey().getAnnotation()).equals("Heat")){
     			System.out.println("HeatRule");
-    		} else if (valueList.get(i).getKey().equals("klabel")){
-    			System.out.print("Klabel \"");
+    		} else if (Key.toString(valueList.get(i).getKey().getAnnotation()).equals("klabel")){
+    			System.out.print("KLabel \"");
     			System.out.print(valueList.get(i).getValue());
     			System.out.println("\"");
-    		} else if (valueList.get(i).getKey().equals("strict")){
+    		} else if (Key.toString(valueList.get(i).getKey().getAnnotation()).equals("strict")){
     			System.out.print("Strict [");
     			System.out.print(((String)valueList.get(i).getValue()).replace(',',';'));
     			System.out.println("]");
@@ -847,32 +857,38 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     		this.visit((UserList) item.getItems().get(0), _void);
     	} else if(item.isSyntacticSubsort()){
     		if(item.isSubsort()){
-    			System.out.print("SubsortRelation (SortId \"" + ((NonTerminal)item.getItems().get(0)).getName() +"\", ");
+    			System.out.print("SubsortRelation (SortId \""
+    		             + ((NonTerminal)item.getItems().get(0)).getName() +"\", ");
     			this.visit(item.getAttributes(), _void);
     		    System.out.println(")");
     		    
     		} else {
-    			System.out.print("Normal ([ "+item.getKLabel() +"; Terminal \"(\" ; NonTerminal (SortId \""
-    		               + ((NonTerminal)item.getItems().get(0)).getName() + "\") ; Terminal \")\" ], ");
+    			System.out.print("Normal ([ "+item.getKLabel()
+    			              +"; Terminal \"(\" ; NonTerminal (SortId \""
+    		               + ((NonTerminal)item.getItems().get(0)).getName()
+    		               + "\") ; Terminal \")\" ], ");
     			this.visit(item.getAttributes(), _void);
     		    System.out.println(")");
     		    
     		}
     	} else if (item.isLexical()){
-    		System.out.print("LexToken (\""+ ((Lexical)item.getItems().get(0)).getLexicalRule() + "\", ");
+    		System.out.print("LexToken (\""
+    	               + ((Lexical)item.getItems().get(0)).getLexicalRule() + "\", ");
 			this.visit(item.getAttributes(), _void);
 		    System.out.println(")");
 		    
     	} else if (item.isTerminal()){
     		if(item.isConstant()){
-    			System.out.print("Constant (SortId \""+ item.getSort().getName() + "\", Terminal \""
+    			System.out.print("Constant (SortId \""
+    		               + item.getSort().getName() + "\", Terminal \""
     		               + ((Terminal)item.getItems().get(0)).getTerminal() +"\", ");
     			this.visit(item.getAttributes(), _void);
     		   	System.out.println(")");
     		   	
     		}
     		else {
-    			System.out.print("Normal ([Terminal \"" + ((Terminal)item.getItems().get(0)).getTerminal() +"\"], ");
+    			System.out.print("Normal ([Terminal \""
+    		                   + ((Terminal)item.getItems().get(0)).getTerminal() +"\"], ");
     			this.visit(item.getAttributes(), _void);
     		   	System.out.println(")");
 
@@ -881,9 +897,11 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     		System.out.print("Bracket ([");
     		for(int i = 0; i < item.getItems().size(); ++i){
     			if(item.getItems().get(i) instanceof Terminal){
-    				System.out.println("Terminal \""+((Terminal)item.getItems().get(i)).getTerminal() + "\"");
+    				System.out.println("Terminal \""
+    			            +((Terminal)item.getItems().get(i)).getTerminal() + "\"");
     			} else if(item.getItems().get(i) instanceof NonTerminal){
-    				System.out.println("NonTerminal (SortId \""+((NonTerminal)item.getItems().get(i)).getName() + "\")");
+    				System.out.println("NonTerminal (SortId \""
+    			            +((NonTerminal)item.getItems().get(i)).getName() + "\")");
     			}
     			
             	if(i != item.getItems().size() - 1){
@@ -898,9 +916,11 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     		System.out.print("Normal ([");
     		for(int i = 0; i < item.getItems().size(); ++i){
     			if(item.getItems().get(i) instanceof Terminal){
-    				System.out.println("Terminal \""+((Terminal)item.getItems().get(i)).getTerminal() + "\"");
+    				System.out.println("Terminal \""
+    			                +((Terminal)item.getItems().get(i)).getTerminal() + "\"");
     			} else if(item.getItems().get(i) instanceof NonTerminal){
-    				System.out.println("NonTerminal (SortId \""+((NonTerminal)item.getItems().get(i)).getName() + "\")");
+    				System.out.println("NonTerminal (SortId \""
+    			               +((NonTerminal)item.getItems().get(i)).getName() + "\")");
     			}
     			
             	if(i != item.getItems().size() - 1){
@@ -972,6 +992,10 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	
     	if(item instanceof Configuration){
     		this.visit((Configuration)item, _void);
+    	} else if(item instanceof Rule){
+    		this.visit((Rule)item, _void);
+    	} else if(item instanceof org.kframework.kil.Context){
+    		this.visit((org.kframework.kil.Context)item, _void);
     	}
     	return null;
     }
@@ -1020,7 +1044,13 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * 
      */
     public Void visit(ListTerminator terminator, Void _void) {
-        System.out.print("[]");
+        if (terminator.separator() != null && terminator.getSort().equals(Sort.K)) {
+            System.out.print("KLabelAsTerm \"'.List`{"
+                           + StringUtil.enquoteCString(StringUtil.escapeMaude(terminator.separator())) + "`}\"");
+            
+        } else {
+        	System.out.print("KLabelAsTerm \"." + terminator.getSort().getName()+"\"");
+        }
         return null;
     }
     
@@ -1037,15 +1067,16 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * KItem is the sort for the variable.
      */
     public Void visit(Variable variable, Void _void) {
-    	System.out.print("(");
-        if (variable.isFreshVariable())
-            System.out.print("?");
-        else if (variable.isFreshConstant())
-        	System.out.print("!");
-        /*
-        System.out.print(variable.getName()
-        		+"::" + this.correctSort(variable.getSort().toString())); */
-        System.out.print(")");
+        if(variable.isFreshVariable()){
+        	System.out.print("FreshVar (\"?"
+                         +variable.getName()+"\", SortId \"" +variable.getSort().getName()+"\")");
+        } else if(variable.isFreshVariable()){
+        	System.out.print("FreshConst (\"!"
+                    +variable.getName()+"\", SortId \"" +variable.getSort().getName()+"\")");
+        } else {
+        	System.out.print("VarTerm (\""
+                    +variable.getName()+"\", SortId \"" +variable.getSort().getName()+"\")");
+        }
         return null;
     }
     
@@ -1067,34 +1098,16 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * the RHS B.
      * A and B are assumed to be Cells in this file.
      */
-    /*
+    
     public Void visit(Rewrite rewrite, Void _void) {
-        if(! (rewrite.getLeft() instanceof KSequence)
-        		&& !(rewrite.getRight() instanceof KSequence)
-        		&& !(rewrite.getRight() instanceof Bag)
-        		&& !(rewrite.getRight() instanceof Bag)){
-        	if(this.resultMap.containsKey(rewrite.getRight().getSort())){
-        		System.out.print("Final ");
-        	}else {
-        		System.out.print("Direct ");
-        	}
-        	
-        	this.visit(rewrite.getLeft(), _void);
-        	System.out.print(" ");
-        	if(this.resultMap.containsKey(rewrite.getRight().getSort())){
-        		System.out.println("(Kresult_value ");
-        		System.out.print(this.resultMap.get(rewrite.getRight().getSort()));
-        	} else{
-        		System.out.println("(");
-        		System.out.print(this.kitemMap.get(rewrite.getRight().getSort()));
-        	}
-        	this.visit(rewrite.getRight(), _void);
-        	System.out.println(")");
-        }
-
+    	System.out.print("Rewrite (");
+        this.visit(rewrite.getLeft(), _void);
+        System.out.print(", ");
+        this.visit(rewrite.getRight(), _void);
+        System.out.print(")");
     	return null;
     }
-    */
+    
     /*
      * (non-Javadoc)
      * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.Rule, java.lang.Object)
@@ -1107,35 +1120,45 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * rule A => B when C
      * requires and ensures mean the C.
      */
+    public Void visit(org.kframework.kil.Context item, Void _void) {
+    	
+    	System.out.print("Context (");
+    	this.visit(item.getBody(), _void);
+    	System.out.print(", ");
+    	this.visit(item.getAttributes(), _void);
+    	System.out.println(")");
+    	return null;
+    }
     
     public Void visit(Rule rule, Void _void) {
-    	System.out.print("rule" + this.counter + ": \"");
-    	this.counter++;
     	
-    	if(rule.getRequires() != null){
-    		this.visit(rule.getRequires(), _void);
-    		System.out.print(" \\<Longrightarrow> ");
-    	}
-    	if(rule.getBody() instanceof Rewrite){
-    		this.visit(rule.getBody(), _void);
-    	}
-    	System.out.println("\"");
-    	/*
-        if (rule.getRequires() != null) {
-        	System.out.print(" ");
-        	this.visit(rule.getRequires(), _void);
-        	System.out.println("  \\<Longrightarrow> ");
+        String content = "Rule (\"";
+        if(rule.getLabel() == null){
+        	content += "\", ";
+        } else {
+        	content += rule.getLabel()+"\", ";
         }
-        if (rule.getEnsures() != null) {
-        	System.out.print(" ");
-        	this.visit(rule.getEnsures(), _void);
-        	System.out.println("  \\<Longrightarrow> ");
-
-        }
-    	System.out.print(" "+this.inductiveName+"TheRule ");
+        
+        System.out.print(content);
         this.visit(rule.getBody(), _void);
-        System.out.println("\"");
-        */
+        System.out.print(", ");
+        
+        if(rule.getRequires() == null){
+        	System.out.print("Empty, ");
+        } else {
+        	this.visit(rule.getRequires(), _void);
+        	System.out.print(", ");
+        }
+
+        if(rule.getEnsures() == null){
+        	System.out.print("Empty, ");
+        } else {
+        	this.visit(rule.getEnsures(), _void);
+        	System.out.print(", ");
+        }
+        
+        this.visit(rule.getAttributes(), _void);
+    	System.out.println(")");
         return null;
     }
     /*
@@ -1171,7 +1194,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     public Void visit(Cell cell, Void _void) {
     	
     	ArrayList<Entry<String, String>> entryList
-    	               = new ArrayList<Entry<String, String>>();
+    	     = new ArrayList<Entry<String, String>>(cell.getCellAttributes().entrySet());
         String attributes = "[";
         for (int i = 0; i < entryList.size(); ++i){
         	attributes += "(\"" + entryList.get(i).getKey() + "\", \""
@@ -1221,21 +1244,22 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * 
      * We need to call visitor of KSequence on each child of the klist.
      */
-    /*
+    
     public Void visit(KList listOfK, Void _void) {
-        java.util.List<Term> termList = listOfK.getContents();
-        for (int i = 0; i < termList.size(); ++i) {
-            this.visit(termList.get(i), _void);
-            if (i != termList.size() - 1) {
+    	System.out.println("KList [");
+        for (int i = 0; i < listOfK.getContents().size(); ++i) {
+            this.visit(listOfK.getContents().get(i), _void);
+            if (i != listOfK.getContents().size() - 1) {
                 System.out.println(" ");
             }
         }
-        if (termList.size() == 0) {
-        	System.out.println("");
+        if (listOfK.getContents().size() == 0) {
+        	System.out.println(" ; ");
         }
+        System.out.println("]");
         return null;
     }
-    */
+    
     /*
      * (non-Javadoc)
      * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.KApp, java.lang.Object)
@@ -1261,41 +1285,23 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * the klabel is actually a token in KAPP
      * In this case, the KAPP will use token visitor functions for its klabel part.
      */
-    /*
+    
     public Void visit(KApp kapp, Void _void) {
-    	System.out.print("(");
-    	if(kapp.getLabel() instanceof KLabelConstant
-    			&& ((KLabelConstant)kapp.getLabel()).getLabel()
-    			.equals(DataStructureSort.DEFAULT_MAP_LABEL)){
-    		if(kapp.getChild() instanceof KList){
-    			for(int i = 0; i< ((KList)kapp.getChild())
-    					.getContents().size(); ++i){
-    				this.visit((Term) ((KList)kapp.getChild())
-        					.getContents().get(i), _void);
-    				if(i != ((KList)kapp.getChild())
-    					.getContents().size() - 1){
-    					System.out.print(" # ");
-    				}
-    			}
-    		}
-    	} else {
-            this.visit(kapp.getLabel(), _void);
-            if (!(kapp.getLabel() instanceof Token) && !(kapp.getLabel() instanceof KInjectedLabel)) {
-                System.out.print(" ");
-                this.visit(kapp.getChild(), _void);
-            }
-    	}
+    	System.out.print("KItem (SortId \""+kapp.getSort().getName()+"\", ");
+    	this.visit(kapp.getLabel(), _void);
+    	System.out.print(", ");
+    	this.visit(kapp.getChild(), _void);
         System.out.println(")");
         return null;
     }
-    */
+    
     /*
      * (non-Javadoc)
      * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.KLabelConstant, java.lang.Object)
      * for the klabel in a KApp = klabel(KList) structure.
      */
     public Void visit(KLabelConstant kLabelConstant, Void _void) {
-        System.out.print(this.generateName(kLabelConstant.getLabel()));
+        System.out.print("KLabelAsTerm \""+kLabelConstant.getLabel()+"\"");
         return null;
     }
     
@@ -1326,98 +1332,104 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * must also make the RHS and LHS of Isabelle translation to be in the KSequence level
      * by adding #[] in the end.
      */
-    /*
+    
     public Void visit(KSequence ksequence, Void _void) {
-        java.util.List<Term> contents = ksequence.getContents();
-        System.out.print("(");
-        if (!contents.isEmpty()) {
-            for (int i = 0; i < contents.size(); i++) {
-            	if(i == 0 && contents.get(i) instanceof KSequence){
-            		if(((KSequence)contents.get(i)).getContents().isEmpty()){
-            			System.out.print("[]");
-            			break;
-            		}
-            	}
-            	System.out.println(contents.get(i).getClass()+","+contents.get(i).getSort());
-            	if(contents.get(i).getSort().equals(Sort.KITEM)
-            			|| contents.get(i).getSort().equals(Sort.K)){
-            		this.visit(contents.get(i), _void);
-            	} else {
-            		System.out.print("("+contents.get(i).getSort().getName()+"KItem ");
-            		this.visit(contents.get(i), _void);
-            		System.out.print(")");
-            	}
-                if (i != contents.size() - 1) {
-                	System.out.print(" # ");
-                }
+        System.out.print("K [");
+        for (int i = 0; i < ksequence.getContents().size(); ++i) {
+            this.visit((Term)(ksequence.getContents().get(i)), _void);
+            if(i != ksequence.getContents().size() - 1){
+            	System.out.print(" ; ");
             }
-        } else {
-        	System.out.print("[]");
         }
-        System.out.print(")");
+        System.out.println("]");
         return null;
     }
-    */
+    
     /*
      * (non-Javadoc)
      * @see org.kframework.kil.AbstractVisitor#visit(org.kframework.kil.ListBuiltin, java.lang.Object)
      * belows are the buildtins and tokens functions.
-     
+     */
     public Void visit(ListBuiltin node, Void p) throws RuntimeException {
-        for (Term t : node.elementsLeft()) {
-            this.visit(t, p);
+        System.out.print("ListBuiltin [");
+        for (int i = 0; i < node.elements().size(); ++i) {
+        	System.out.print("KItem (SortId \"ListItem\", KLabelAsTerm \""
+                      +DataStructureSort.DEFAULT_LIST_ITEM_LABEL+"\", KList [");
+            this.visit((Term)(node.elements().get(i)), p);
+            System.out.print("])");
+            System.out.print(" ; ");
         }
         for (Term t : node.baseTerms()) {
-            this.visit(t, p);
+        	this.visit(t, p);
+            System.out.print(" ; ");
         }
-        for (Term t : node.elementsRight()) {
-            this.visit(t, p);
+        for (int i = 0; i < node.elementsRight().size(); ++i) {
+        	System.out.print("KItem (SortId \"ListItem\", KLabelAsTerm \""
+                      +DataStructureSort.DEFAULT_LIST_ITEM_LABEL+"\", KList [");
+            this.visit((Term)(node.elementsRight().get(i)), p);
+            System.out.print("])");
+            System.out.print(" ; ");
         }
+        System.out.println("]");
         return null;
     }
 
     public Void visit(MapBuiltin node, Void p) throws RuntimeException {
-        for (Map.Entry<Term, Term> entry : node.elements().entrySet()) {
-            this.visit(entry.getKey(), p);
-            this.visit(entry.getValue(), p);
+    	ArrayList<Entry<Term, Term>> entryList
+    	     = new ArrayList<Entry<Term, Term>>(node.elements().entrySet());
+    	System.out.println("MapBuiltin [");
+        for (int i = 0; i < entryList.size(); ++i) {
+        	System.out.print("KItem (SortId \"MapItem\", KLabelAsTerm \""
+                                      + node.sort().elementLabel()+"\", KList [");
+            this.visit(entryList.get(i).getKey(), p);
+            System.out.print(" ; ");
+            this.visit(entryList.get(i).getValue(), p);
+            System.out.print("])");
+            System.out.print(" ; ");
         }
         for (Term t : node.baseTerms()) {
         	this.visit(t, p);
+            System.out.print(" ; ");
         }
+        System.out.println("]");
         return null;
     }
 
     public Void visit(SetBuiltin node, Void p) throws RuntimeException {
-        for (Term t : node.elements()) {
-        	this.visit(t, p);
+    	System.out.print("SetBuiltin [");
+    	ArrayList<Term> temp = new ArrayList<Term>(node.elements());
+        for (int i = 0; i < temp.size(); ++i) {
+        	System.out.print("KItem (SortId \"SetItem\", KLabelAsTerm \""
+                        +node.sort().elementLabel()+"\", KList [");
+        	this.visit(temp.get(i), p);
+        	System.out.print("])");
+        	System.out.print(" ; ");
         }
         for (Term t : node.baseTerms()) {
         	this.visit(t, p);
+            System.out.print(" ; ");
         }
+        System.out.println("]");
         return null;
     }
-    */
+    
     public Void visit(IntBuiltin node, Void p) {
-    	System.out.print(" "+node.value()+" ");
+    	System.out.print("IntBuiltin "+node.value());
         return null;
     }
     
     public Void visit(StringBuiltin node, Void p) {
-    	System.out.print(""+node.value()+"\" ");
+    	System.out.print("StringBuiltin \""+node.value()+"\" ");
         return null;
     }
     
     public Void visit(FloatBuiltin node, Void p) {
-    	System.out.print(node.value());
+    	System.out.print("FloatBuiltin " + node.value());
         return null;
     }
     
     public Void visit(BoolBuiltin node, Void p) {
-    	if(node.value().equals(BoolBuiltin.TRUE)){
-    		System.out.print(" True ");
-    	} else {
-    		System.out.print(" False ");
-    	}
+    	System.out.print("BoolBuiltin " + node.value());
         return null;
     }
     
@@ -1434,86 +1446,49 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * Read the visit function carefully to know the detail.
      * However, we need to know that the concepts of the termCons have no difference with
      * the concepts of KApp.
+     * 
      */
-    /*
     public Void visit(TermCons termCons, Void _void) {
-        Production production = termCons.getProduction();
-        if (production.isListDecl()) {
-            UserList userList = (UserList) production.getItems().get(0);
-            String separator = "'_"+userList.getSeparator()+"_";
-            java.util.List<Term> contents = termCons.getContents();
-            System.out.print("("+this.generateName(separator)+" ");
-            this.visit(contents.get(0), _void);
-            System.out.print(" ");
-            this.visit(contents.get(1), _void);
-            System.out.print(")");
-        } else {
-            int where = 0;
-            String label = "'";
-            ArrayList<Term> termList = new ArrayList<Term>();
-            Term lastVar = null;
-            for (int i = 0; i < production.getItems().size(); ++i) {
-                ProductionItem productionItem = (ProductionItem) production.getItems().get(i);
-                if (!(productionItem instanceof Terminal)) {
-                    Term subterm = (Term) termCons.getContents().get(where);
-                    if(termCons.getSort().equals(Sort.MAP) 
-                    		&& (subterm instanceof Variable)){
-                    	lastVar = subterm;
-                    } else {
-                        termList.add(subterm);
+        if (termCons.getProduction().getItems().size() > 0) {
+            if (termCons.getProduction().isListDecl()) {
+                String separator
+                   = ((UserList) termCons.getProduction().getItems().get(0)).getSeparator();
+                if (termCons.getContents().size() == 0)
+                    System.out.println("KLabelAsTerm \"." + termCons.getSort().getName()+"\"");
+                else {
+                    System.out.print("KItem (SortId \""
+                             +termCons.getSort().getName()+
+                             "\", KLabelAsTerm \"'_" + separator + "_\", KList [");
+                    for(int i = 0; i < termCons.getContents().size(); ++i){
+                    	this.visit(termCons.getContents().get(i), _void);
+                        if(i != termCons.getContents().size() - 1){
+                        	System.out.print(" ; ");
+                        }
                     }
-                    label += "_";
-                    where++;
-                } else {
-                	label += ((Terminal) productionItem).getTerminal();
+                    System.out.println("])");
                 }
-            }
-            
-            if(lastVar != null){
-            	termList.add(lastVar);
-            }
-            
-            if(termCons.getSort().equals(Sort.MAP)) {
-            	if(label.equals("'__")) {
-            		System.out.print("(");
-            		for(int i = 0; i < termList.size(); ++i){
-            			if(!(lastVar != null && termList.get(i) instanceof TermCons
-            					&& ((TermCons)termList.get(i)).getSort().equals(Sort.MAP)
-            					&& ((TermCons)termList.get(i)).getProduction()
-            					.getKLabel().equals(DataStructureSort.DEFAULT_MAP_UNIT_LABEL))){
-            				this.visit(termList.get(i), _void);
-            				if(i != termList.size() - 1){
-                        		System.out.println(" # ");
-                        	}
-            			}
-                    }
-                    if(termList.size() == 0){
-                    	System.out.print("[]");
-                    }
-                    System.out.print(")");
-            	} else if(label.equals(DataStructureSort.DEFAULT_MAP_UNIT_LABEL)) {
-            		System.out.println("[]");
-            	} else if(label.equals(DataStructureSort.DEFAULT_MAP_ITEM_LABEL)){
-            		System.out.print("(");
-            		System.out.println("Mapsto");
-                    for(int i = 0; i < termList.size(); ++i){
-                    	System.out.print(" "+termList.get(i).getClass());
-                    	System.out.print(" ");
-                    	this.visit(termList.get(i), _void);
-                    }
-                    System.out.print(")");
-            	}
             } else {
-            	System.out.print("("+klabelMap
-            			.get(this.generateKLabel(production)).getIsabelleLabel());
-                for(int i = 0; i < termList.size(); ++i){
-                	System.out.print(" ");
-                	this.visit(termList.get(i), _void);
+            	String theLabel = "'";
+            	for (int i = 0; i < termCons.getProduction().getItems().size(); i++) {
+            		if (termCons.getProduction().getItems().get(i) instanceof Terminal) {
+            			theLabel +=
+            				((Terminal) termCons.getProduction().getItems().get(i)).getTerminal();
+            		} else if (termCons.getProduction().getItems().get(i) instanceof NonTerminal) {
+            			theLabel += "_";
+            		}
+            	}
+                System.out.print("KItem (SortId \""
+            	                 +termCons.getSort().getName()
+            	                 +"\", KLabelAsTerm \"" + theLabel + "\", KList [");
+                for (int i = 0; i < termCons.getContents().size(); i++) {
+                	this.visit(termCons.getContents().get(i), _void);
+                    if(i != termCons.getContents().size() - 1){
+                    	System.out.print(" ; ");
+                    }
                 }
-                System.out.print(")");
+                System.out.println("])");
             }
         }
         return null;
     }
-    */
 }

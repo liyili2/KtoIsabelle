@@ -9,6 +9,7 @@ and theModule = Require of string | DefComment of string | Module of (modId * mo
 and moduleItem = Import of modId
                | ModComment of string
                | Syntax of (sortId * priorityBlock list)
+               | Configuration of term
 and priorityBlock = PriorityBlock of (attribute * production list)
 and production = SubsortRelation of (sortId * attribute list)
                | Normal of (productionItem list * attribute list)

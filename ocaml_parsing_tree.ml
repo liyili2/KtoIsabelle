@@ -11,6 +11,7 @@ and theModule = Require of string | DefComment of string | Module of (modId * mo
 and moduleItem = Import of modId
                | ModComment of string
                | Syntax of (sortId * priorityBlock list)
+               | SyntaxPriority of term list list
                | Configuration of term
                | Rule of (string * term * term * term * attribute list) (* name, body, requires, ensures, attributes *)
                | Context of (term * attribute list)
@@ -18,7 +19,7 @@ and priorityBlock = PriorityBlock of (attribute * production list)
 and production = SubsortRelation of (sortId * attribute list)
                | Normal of (productionItem list * attribute list)
                | LexToken of (string * attribute list)
-               | Constant of (sortId * productionItem list)
+               | Constant of (sortId * productionItem * attribute list)
                | Bracket of (productionItem list * attribute list)
                | UserList of (sortId * string (* separator *) * userListLabel)
 and productionItem = Terminal of string | NonTerminal of sortId

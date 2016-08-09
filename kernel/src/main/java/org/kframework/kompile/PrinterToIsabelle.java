@@ -13,6 +13,7 @@ import org.kframework.kil.Attribute.Key;
 import org.kframework.kil.Attributes;
 import org.kframework.kil.Bag;
 import org.kframework.kil.BoolBuiltin;
+import org.kframework.kil.Bracket;
 import org.kframework.kil.Cell;
 import org.kframework.kil.Collection;
 import org.kframework.kil.Configuration;
@@ -38,6 +39,8 @@ import org.kframework.kil.Module;
 import org.kframework.kil.ModuleItem;
 import org.kframework.kil.NonTerminal;
 import org.kframework.kil.PriorityBlock;
+import org.kframework.kil.PriorityBlockExtended;
+import org.kframework.kil.PriorityExtended;
 import org.kframework.kil.Production;
 import org.kframework.kil.ProductionItem;
 import org.kframework.kil.Require;
@@ -233,6 +236,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	
     	if(node instanceof Rewrite){
     		this.visit((Rewrite)node, _void);
+    	} else if(node instanceof Bracket){
+    		this.visit((Bracket)node, _void);
     	} else if(node instanceof Cell){
     		this.visit((Cell)node, _void);
     	} else if(node instanceof KApp){
@@ -272,6 +277,13 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	return null;
     }
     
+    public Void visit(Bracket item, Void _void) {
+    	System.out.print("(");
+    	this.visit(item.getContent(), _void);
+    	System.out.println(")");
+    	return null;
+    }
+    
     public Void visit(Hole item, Void _void) {
     	System.out.print("Hole (SortId \""+ item.getSort().getName() +"\")");
     	return null;
@@ -285,7 +297,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     
     public Void visit(LiterateDefinitionComment ltc, Void _void) {
     	
-    	System.out.println("DefComment \""+ ltc.getValue()+"\"");
+    	System.out.println("DefComment \""+ ltc.getValue().replace("\\", "\\\\").replace("\"", "\\\"")+"\"");
     	return null;
     }
     
@@ -784,7 +796,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     }
     
     public Void visit(LiterateModuleComment item, Void _void) {
-    	System.out.println("ModComment \""+item.getValue()+"\"");
+    	System.out.println("ModComment \""
+                        +item.getValue().replace("\\", "\\\\").replace("\"", "\\\"")+"\"");
     	return null;
     }
     
@@ -823,7 +836,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     			System.out.println("]");
     		} else {
     			System.out.print("Attribute (\""+valueList.get(i).getKey()+"\", ");
-    			System.out.println("\""+valueList.get(i).getValue() + "\")");
+    			System.out.println("\""+valueList.get(i).getValue().toString()
+    					    .replace("\\", "\\\\").replace("\"", "\\\"")+ "\")");
     		}
     		
         	if(i != valueList.size() - 1){
@@ -863,8 +877,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     		    System.out.println(")");
     		    
     		} else {
-    			System.out.print("Normal ([ "+item.getKLabel()
-    			              +"; Terminal \"(\" ; NonTerminal (SortId \""
+    			System.out.print("Normal ([ Terminal \""+item.getKLabel()
+    			              +"\" ; Terminal \"(\" ; NonTerminal (SortId \""
     		               + ((NonTerminal)item.getItems().get(0)).getName()
     		               + "\") ; Terminal \")\" ], ");
     			this.visit(item.getAttributes(), _void);
@@ -873,7 +887,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     		}
     	} else if (item.isLexical()){
     		System.out.print("LexToken (\""
-    	               + ((Lexical)item.getItems().get(0)).getLexicalRule() + "\", ");
+    	               + ((Lexical)item.getItems().get(0)).getLexicalRule()
+    	               .replace("\\", "\\\\").replace("\"", "\\\"") + "\", ");
 			this.visit(item.getAttributes(), _void);
 		    System.out.println(")");
 		    
@@ -983,8 +998,9 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     
     public Void visit(Configuration item, Void _void) {
     	
-    	System.out.print("Configuration ");
+    	System.out.print("Configuration (");
     	this.visit(item.getBody(), _void);
+    	System.out.println(")");
     	return null;
     }
     
@@ -1000,6 +1016,32 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     	return null;
     }
     
+    public Void visit(PriorityBlockExtended item, Void _void) {
+    	
+    	System.out.print("[");
+    	for(int i = 0; i < item.getProductions().size(); ++i){
+    		this.visit(item.getProductions().get(i), _void);
+    		if(i != item.getProductions().size() - 1){
+    			System.out.print(" ; ");
+    		}
+    	}
+    	System.out.println("]");
+    	return null;
+    }
+    
+    public Void visit(PriorityExtended item, Void _void) {
+    	
+    	System.out.print("SyntaxPriority [");
+    	for(int i = 0; i < item.getPriorityBlocks().size(); ++i){
+    		this.visit(item.getPriorityBlocks().get(i), _void);
+    		if(i != item.getPriorityBlocks().size() - 1){
+    			System.out.print(" ; ");
+    		}
+    	}
+    	System.out.println("]");
+    	return null;
+    }
+    
     /*
      * The visitor module function will
      * print out the datatypes by using printDatatype function
@@ -1010,7 +1052,6 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     public Void visit(Module mod, Void _void) {
     	System.out.print("Module ( ModId \""+mod.getName()+"\", [ ");
         for (int i = 0; i < mod.getItems().size(); ++i){
-        	
         	if(mod.getItems().get(i) instanceof Import){
         		this.visit((Import)(mod.getItems().get(i)), _void);
         	} else if(mod.getItems().get(i) instanceof LiterateModuleComment){
@@ -1019,6 +1060,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         		this.visit((Syntax)(mod.getItems().get(i)), _void);
         	} else if(mod.getItems().get(i) instanceof Sentence){
         		this.visit((Sentence)(mod.getItems().get(i)), _void);
+        	} else if(mod.getItems().get(i) instanceof PriorityExtended){
+        		this.visit((PriorityExtended)(mod.getItems().get(i)), _void);
         	}
         	
     		if(i != mod.getItems().size() - 1){
@@ -1250,11 +1293,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         for (int i = 0; i < listOfK.getContents().size(); ++i) {
             this.visit(listOfK.getContents().get(i), _void);
             if (i != listOfK.getContents().size() - 1) {
-                System.out.println(" ");
+                System.out.println(" ; ");
             }
-        }
-        if (listOfK.getContents().size() == 0) {
-        	System.out.println(" ; ");
         }
         System.out.println("]");
         return null;
@@ -1414,17 +1454,17 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     }
     
     public Void visit(IntBuiltin node, Void p) {
-    	System.out.print("IntBuiltin "+node.value());
+    	System.out.print("IntBuiltin ("+node.value()+")");
         return null;
     }
     
     public Void visit(StringBuiltin node, Void p) {
-    	System.out.print("StringBuiltin \""+node.value()+"\" ");
+    	System.out.print("StringBuiltin \""+node.value().replace("\\", "\\\\").replace("\"", "\\\"")+"\" ");
         return null;
     }
     
     public Void visit(FloatBuiltin node, Void p) {
-    	System.out.print("FloatBuiltin " + node.value());
+    	System.out.print("FloatBuiltin (" + node.value()+")");
         return null;
     }
     

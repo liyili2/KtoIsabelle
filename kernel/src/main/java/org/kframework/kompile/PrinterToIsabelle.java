@@ -941,8 +941,8 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     			if(item.getItems().get(i) instanceof NonTerminal){
     				System.out.println("NonTerminal (SortId \""
     			               +((NonTerminal)item.getItems().get(i)).getName() + "\")");
+    				System.out.print(" ; ");
     			}
-            	System.out.print(" ; ");
     		}
     		System.out.print("], ");
 			this.visit(item.getAttributes(), _void);

@@ -1391,7 +1391,7 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      * belows are the buildtins and tokens functions.
      */
     public Void visit(ListBuiltin node, Void p) throws RuntimeException {
-        System.out.print("ListBuiltin [");
+        System.out.print("KItem (SortId \"List\", KLabelAsTerm (KLabelName \"ListBuiltin\"),  KList [");
         for (int i = 0; i < node.elements().size(); ++i) {
         	System.out.print("KItem (SortId \"ListItem\", KLabelAsTerm (KLabelName \""
                       +generateName(DataStructureSort.DEFAULT_LIST_ITEM_LABEL)+"\"), KList [");
@@ -1410,14 +1410,14 @@ public class PrinterToIsabelle extends NonCachingVisitor {
             System.out.print("])");
             System.out.print(" ; ");
         }
-        System.out.println("]");
+        System.out.println("])");
         return null;
     }
 
     public Void visit(MapBuiltin node, Void p) throws RuntimeException {
     	ArrayList<Entry<Term, Term>> entryList
     	     = new ArrayList<Entry<Term, Term>>(node.elements().entrySet());
-    	System.out.println("MapBuiltin [");
+    	System.out.println("KItem (SortId \"Map\", KLabelAsTerm (KLabelName \"MapBuiltin\"),  KList [");
         for (int i = 0; i < entryList.size(); ++i) {
         	System.out.print("KItem (SortId \"MapItem\", KLabelAsTerm (KLabelName \""
                                       + generateName(node.sort().elementLabel())+"\"), KList [");
@@ -1431,12 +1431,12 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         	this.visit(t, p);
             System.out.print(" ; ");
         }
-        System.out.println("]");
+        System.out.println("])");
         return null;
     }
 
     public Void visit(SetBuiltin node, Void p) throws RuntimeException {
-    	System.out.print("SetBuiltin [");
+    	System.out.print("KItem (SortId \"Set\", KLabelAsTerm (KLabelName \"SetBuiltin\"),  KList [");
     	ArrayList<Term> temp = new ArrayList<Term>(node.elements());
         for (int i = 0; i < temp.size(); ++i) {
         	System.out.print("KItem (SortId \"SetItem\", KLabelAsTerm (KLabelName \""
@@ -1449,28 +1449,28 @@ public class PrinterToIsabelle extends NonCachingVisitor {
         	this.visit(t, p);
             System.out.print(" ; ");
         }
-        System.out.println("]");
+        System.out.println("])");
         return null;
     }
     
     public Void visit(IntBuiltin node, Void p) {
-    	System.out.print("IntBuiltin ("+node.value()+")");
+    	System.out.print("KItem (SortId \"Int\", KLabelAsTerm (IntBuiltin ("+node.value()+")),  KList [])");
         return null;
     }
     
     public Void visit(StringBuiltin node, Void p) {
-    	System.out.print("StringBuiltin \""+node.value().replace("\\", "\\\\")
-    			.replace("\"", "\\\"").replace("*)", "* )").replace("(*", "( *")+"\" ");
+    	System.out.print("KItem (SortId \"String\", KLabelAsTerm (StringBuiltin \""+node.value().replace("\\", "\\\\")
+    			.replace("\"", "\\\"").replace("*)", "* )").replace("(*", "( *")+"\"),  KList [])");
         return null;
     }
     
     public Void visit(FloatBuiltin node, Void p) {
-    	System.out.print("FloatBuiltin (" + node.value()+")");
+    	System.out.print("KItem (SortId \"Float\", KLabelAsTerm (FloatBuiltin ("+node.value()+")),  KList [])");
         return null;
     }
     
     public Void visit(BoolBuiltin node, Void p) {
-    	System.out.print("BoolBuiltin " + node.value());
+    	System.out.print("KItem (SortId \"Bool\", KLabelAsTerm (BoolBuiltin "+node.value()+"),  KList [])");
         return null;
     }
     

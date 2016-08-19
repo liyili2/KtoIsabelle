@@ -743,6 +743,14 @@ public class PrinterToIsabelle extends NonCachingVisitor {
     			value += "End";
     		} else if(t.charAt(i) == ':') {
     			value += "To";
+    		} else if(t.charAt(i) == ',') {
+    			value += "Dot";
+    		} else if(t.charAt(i) == '#') {
+    			value += "Pound";
+    		} else if(t.charAt(i) == '\'') {
+    			value += "Quote";
+    		} else if(t.charAt(i) == '\\') {
+    			value += "Sla";
     		} else {
     			value += t.charAt(i);
     		}
@@ -1111,14 +1119,18 @@ public class PrinterToIsabelle extends NonCachingVisitor {
      */
     public Void visit(Variable variable, Void _void) {
         if(variable.isFreshVariable()){
-        	System.out.print("FreshVar (\"?"
+        	System.out.print("VarTerm (FreshVar \""
                          +variable.getName()+"\", SortId \"" +variable.getSort().getName()+"\")");
         } else if(variable.isFreshVariable()){
-        	System.out.print("FreshConst (\"!"
+        	System.out.print("VarTerm (FreshConst \""
                     +variable.getName()+"\", SortId \"" +variable.getSort().getName()+"\")");
         } else {
-        	System.out.print("VarTerm (\""
-                    +variable.getName()+"\", SortId \"" +variable.getSort().getName()+"\")");
+        	if(variable.getName().equals("_")){
+        		System.out.print("VarTerm (Any, SortId \"" +variable.getSort().getName()+"\")");
+        	} else {
+        		System.out.print("VarTerm (VarId \""
+                        +variable.getName()+"\", SortId \"" +variable.getSort().getName()+"\")");
+        	}
         }
         return null;
     }

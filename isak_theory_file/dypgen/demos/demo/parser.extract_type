@@ -1,0 +1,110 @@
+module Dyp_symbols :
+  sig
+    val get_token_name : unit -> int
+    val str_token : 'a -> 'b
+    val ter_string_list : (string * int) list
+  end
+type ('dypgen__Lex_string, 'dypgen__Obj_LIDENT, 'dypgen__Obj_STRING,
+      'dypgen__Obj_UIDENT, 'dypgen__Obj_define_in, 'dypgen__Obj_expr,
+      'dypgen__Obj_main, 'dypgen__Obj_rhs)
+     obj =
+    Lex_string of 'dypgen__Lex_string
+  | Lexeme_matched of string
+  | Obj_LIDENT of 'dypgen__Obj_LIDENT
+  | Obj_STRING of 'dypgen__Obj_STRING
+  | Obj_UIDENT of 'dypgen__Obj_UIDENT
+  | Obj___dypgen_layout
+  | Obj_define_in of 'dypgen__Obj_define_in
+  | Obj_expr of 'dypgen__Obj_expr
+  | Obj_main of 'dypgen__Obj_main
+  | Obj_rhs of 'dypgen__Obj_rhs
+  | Dypgen__dummy_obj_cons
+module Dyp_symbols_array :
+  sig
+    val token_name_array : string array
+    val nt_cons_list : (string * int) list
+    val str_cons : ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) obj -> string
+    val cons_array : string array
+    val entry_points : string list
+  end
+val dypgen_lexbuf_position :
+  'a Dyp.dyplexbuf -> Lexing.position * Lexing.position
+module Dyp_aux_functions :
+  sig
+    val get_token_value : 'a -> ('b, 'c, 'd, 'e, 'f, 'g, 'h, 'i) obj
+    val cons_table : (string, int) Hashtbl.t
+  end
+module Dyp_priority_data : sig val relations : 'a list end
+val global_data : unit
+val local_data : unit
+val global_data_equal : 'a -> 'a -> bool
+val local_data_equal : 'a -> 'a -> bool
+val dyp_merge : ('a, 'b, 'c) Dyp.merge_function
+val dypgen_match_length : [> `shortest ]
+val dypgen_choose_token : [> `first ]
+val dypgen_keep_data : [> `both ]
+val dypgen_use_rule_order : bool
+val dypgen_use_all_actions : bool
+val string_buf : Buffer.t
+val a_define_in :
+  'a ->
+  'b * Parse_tree.rhs list * Parse_tree.expr ->
+  ('b * Dyp.symb list * string * 'c list) *
+  ('d ->
+   ('e, 'f, 'g, 'h, 'i, Parse_tree.expr, 'j, 'k) obj list ->
+   ('l, 'm, 'n, 'o, 'p, Parse_tree.expr, 'q, 'r) obj * 's list)
+val __dypgen_ra_list :
+  ((string * Dyp.symb list * string * 'a list) *
+   ('t,
+    ('b, string, string, string, unit, Parse_tree.expr, Parse_tree.expr,
+     Parse_tree.rhs list)
+    obj, 'gd, 'ld, 'l)
+   Dyp.action * 'c list)
+  list
+val __dypgen_main_lexer :
+  (string * Dyp.regexp) list *
+  (int *
+   ((unit, 'a, 'b, 'c, 'd, 'e, 'f, 'g) obj Dyp.dyplexbuf ->
+    ('h, string, string, string, 'i, 'j, 'k, 'l) obj))
+  list
+val __dypgen_aux_lexer :
+  (string *
+   (Dyp.regexp list *
+    ('a list ->
+     (unit, 'b, 'c, 'd, 'e, 'f, 'g, 'h) obj Dyp.dyplexbuf ->
+     (unit, 'i, 'j, 'k, 'l, 'm, 'n, 'o) obj)
+    list))
+  list
+val __dypgen_regexp_decl : (string * Dyp.regexp) list
+val dyp_merge_Lex_string : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Lexeme_matched : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_LIDENT : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_STRING : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_UIDENT : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_define_in : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_expr : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_main : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_rhs : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val __dypgen_merge_list :
+  ((('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) obj * 'i * 'j) list ->
+   ('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) obj list * 'i * 'j)
+  list
+val __dypgen_test_cons :
+  unit -> (('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h) obj -> bool) array
+val __dypgen_dummy_marker_2 : unit
+val pp :
+  unit ->
+  (unit,
+   (unit, string, string, string, unit, Parse_tree.expr, Parse_tree.expr,
+    Parse_tree.rhs list)
+   obj, unit, unit, 'a Dyp.dyplexbuf)
+  Dyp.parser_pilot
+val __dypgen_dummy_marker_5 : unit
+val __dypgen_dummy_marker_3 : unit
+val main :
+  ?global_data:unit ->
+  ?local_data:unit ->
+  (unit, string, string, string, unit, Parse_tree.expr, Parse_tree.expr,
+   Parse_tree.rhs list)
+  obj Dyp.dyplexbuf -> (Parse_tree.expr * string) list
+val __dypgen_dummy_marker_4 : unit

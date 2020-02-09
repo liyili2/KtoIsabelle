@@ -1,0 +1,3 @@
+fact = (eq°[id,0] -> 1; x°[id,fact°-°[id,1]]);
+fact 3;
+

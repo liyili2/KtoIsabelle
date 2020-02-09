@@ -1,0 +1,70 @@
+type token = EOF | TIMES | PLUS | INT of int
+module Dyp_symbols :
+  sig
+    val get_token_name : token -> int
+    val str_token : token -> string
+    val ter_string_list : (string * int) list
+  end
+type 'dypgen__Obj_expr obj =
+    Lexeme_matched of string
+  | Obj_EOF
+  | Obj_INT of int
+  | Obj_PLUS
+  | Obj_TIMES
+  | Obj_expr of 'dypgen__Obj_expr
+  | Obj_main of Parse_tree.tree
+module Dyp_symbols_array :
+  sig
+    val token_name_array : string array
+    val nt_cons_list : (string * int) list
+    val str_cons : 'a obj -> string
+    val cons_array : string array
+    val entry_points : string list
+  end
+module Dyp_aux_functions :
+  sig
+    val get_token_value : token -> 'a obj
+    val cons_table : (string, int) Hashtbl.t
+  end
+module Dyp_priority_data : sig val relations : 'a list end
+val global_data : unit
+val local_data : unit
+val global_data_equal : 'a -> 'a -> bool
+val local_data_equal : 'a -> 'a -> bool
+val dyp_merge : ('a, 'b, 'c) Dyp.merge_function
+val dypgen_match_length : [> `shortest ]
+val dypgen_choose_token : [> `first ]
+val dypgen_keep_data : [> `both ]
+val dypgen_use_rule_order : bool
+val dypgen_use_all_actions : bool
+val print_pos : Lexing.position -> unit
+type lexbuf2 = {
+  mutable token_list : (token * (Lexing.position * Lexing.position)) list;
+  mutable token_position : Lexing.position * Lexing.position;
+}
+val dypgen_lexbuf_position : lexbuf2 -> Lexing.position * Lexing.position
+val __dypgen_ra_list :
+  ((string * Dyp.symb list * string * 'a list) *
+   ('b, Parse_tree.tree obj, 'c, 'd, 'e) Dyp.action * 'f list)
+  list
+val __dypgen_main_lexer :
+  (string * Dyp.regexp) list * (int * ('a -> 'b obj)) list
+val __dypgen_aux_lexer : 'a list
+val __dypgen_regexp_decl : 'a list
+val dyp_merge_Lexeme_matched : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_INT : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_expr : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_main : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val __dypgen_merge_list :
+  (('a obj * 'b * 'c) list -> 'a obj list * 'b * 'c) list
+val __dypgen_test_cons : unit -> ('a obj -> bool) array
+val __dypgen_dummy_marker_2 : unit
+val pp :
+  unit -> (token, Parse_tree.tree obj, unit, unit, lexbuf2) Dyp.parser_pilot
+val __dypgen_dummy_marker_5 : unit
+val __dypgen_dummy_marker_3 : unit
+val main :
+  ?global_data:unit ->
+  ?local_data:unit ->
+  (lexbuf2 -> token) -> lexbuf2 -> (Parse_tree.tree * string) list
+val __dypgen_dummy_marker_4 : unit

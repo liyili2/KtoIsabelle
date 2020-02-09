@@ -1,0 +1,60 @@
+2012/08/17
+	   Several bugs fixed, 'runsemantic' simplified.
+	   The 'L' operator was implemented in reverse, it now functions
+	   as expected in "standard" PEG, the previous behavior can
+	   be obtained by doubling it: L (L (NT ...)) accepts the NT
+	   but doesn't move the parsing cursor.
+	   The 'M' operator has now a signature of:
+	   (int -> int -> string -> parsevalue -> unit)
+	   The makefile has been upgraded to a more elaborate version.
+	   The 'demo.ml' has been updated but not otherwise modified.
+	   A new option 'node_stamping' has been added to the debug mode.
+
+2012/07/04
+	   Another major change, the parser now supports token streams of
+	   any kind not just characters, therefore the grammar format is 
+	   altered, the constructors T, Chars and Eof are removed all are
+	   replaced with the sole constructor "A (callback, name)" which
+	   type is "A of (int -> string -> int) * string", see the README.
+	   This amounts to have the lexical processing (possibly) deported
+	   out of the parser and into the caller with an "on-the-fly"
+	   lexeme processing (see how the demo has changed for numbers
+	   parsing for instance).
+	   The 'demo.ml' has been modified accordingly but runs exactly
+	   the same, except for the format of most debug messages which
+	   cannot contain input text fragments since the parser is 
+	   completely oblivious of the type of the token stream.
+
+2012/06/28
+	   Major changes in the nodes threading to allow processing
+	   of "nasty" grammars like
+
+	   a = a 'a' | b
+	   b = b 'b' | a | c
+	   c = c 'c' | b | d
+
+	   A new option has been added to 'demo.ml' to choose a
+	   different starting symbol to test the above case.
+
+	   The 'successors' field is now only used for stacking
+	   parsed nodes, the 'hook' field holding future parsing
+	   candidates in all cases (not just for recursive rules)
+
+	   Productions in a given rule are categorized as:
+
+	   - mutual recursive
+	   - non recursive
+	   - directly left recursive
+
+	   They are tried in the ABOVE ORDER, this is a major change 
+	   from alpha release 0.3 which however does not impact the 
+	   semantic of the demo which is unchanged.
+
+2012/06/22  
+           several bug fixes
+           added the 'L' opcode for lookahead, used in error recovery
+	   added examples of error recovery in 'demo.ml'
+	   added comprehensive display of source lines error messages
+	   added a few more primitives in the interpreter
+
+

@@ -1,0 +1,234 @@
+                 Left to Right Tree Traversal parser 
+
+   Copyright (c) 2012 Jean-Luc Delatre a.k.a. Kevembuangga
+
+The LRTT parser (Left to Right Tree Traversal) is a PEG parser which deals
+with left recursive rules in "native mode", that is, without modifying the
+specified grammar with respect to priorities, except OF COURSE that every
+left recursion is delt with after all non recursive production heads have
+been tried.
+The LRTTparser handles mutual left recursives rules at any depth.
+
+The following 'make' commands are available,
+'make debug' compiles a more verbose version. 
+'make nodebug' reverts to the non debug version, 
+ plain 'make' reiterates the last debug/nodebug.
+
+      make
+      make debug
+      make nodebug
+      make clean
+
+As an example of use of the LRTT parser (Left to Right Tree Traversal)
+this makes the 'demo' executable which is a small calculator implementing 
+John Backus FP language from his 1977 Turing Award Lecture
+http://www.thocp.net/biographies/papers/backus_turingaward_lecture.pdf
+
+"./demo -h"  will show the possible options.
+
+See Backus paper and/or the language grammar defined in 'demo.ml' to 
+find out the syntax, there are also a few example source files in the
+'testfiles' directory. Not all primitives are implemented since this
+is mostly a test environment for the LRTT parser.
+
+The following commands are available, all are terminated by ';'
+
+ident = expression;  -- defines ident to be the value of expression.
+exprA exprB;         -- applies exprA to exprB leaving the result
+                        in the implicit accumulator.
+save ident;          -- defines ident to be the value of the accumulator.
+show;                -- print the content of the accumulator.
+show ident;          -- print the value of the identifier.
+show *;              -- print a list of all identifiers and their values.
+del ident;           -- delete the identifier definition.
+include "filepath";  -- read and executes the file content.
+quit;                -- exit the interpreter.
+
+
+The LRTT parser.
+---------------
+
+The LRTT parser is a single Ocaml functor of less than 700 lines and is 
+probably the smallest parser generator around, though it doesn't "generate" 
+anything but directly runs the grammar defined as an Ocaml tree structure
+with the following codes:
+
+ | A of (int -> string -> int) * string
+                         The token "acceptor", when called with the current stream 
+			 position and the argument string it contains the callback
+			 shall return:
+			 0  - if the tokens at the given stream position do not match.
+			 -1 - if the given position is EXACTLY the end of the stream.
+			 n  - number of accepted tokens at the  given position.
+
+ | S of semantic         A semantic action routine of type 
+                            int -> int -> 'parsevalue' -> 'parsevalue'
+                         - text position at start of enclosing rule
+			 - text position upon current call 
+                           (all accepted text since start of parse)
+			 - previous value of the global parse object 
+                           (the 't' parameter of the functor)
+			 - parse object returned by the semantic action 
+                           (up to you...)
+
+ | D of semantic         Error recovery by text deletion, same parameters.
+ 			 the 'D' opcode should follow another opcode 
+			 which is faillible. If the previous opcode is accepted
+                         the 'D' opcode is erased from the parse tree.
+			 If it fails all parse nodes already accepted in the
+                         current production are erased but the production as 
+                         a whole does NOT fail, thus all text between the two 
+                         positions has been ignored, you should deal with this 
+                         as you like and return a possibly updated parse object.
+			 You may have error recovery by insertion by having the
+                         last production in a rule being only a 'S' opcode 
+                         (not grabbing any text) which updates the parse object 
+                         to the effect of inserting whatever missing value.
+                     
+ | M of (int -> int -> string -> parsevalue -> unit)
+                         Grammar debugging hook, this callback is executed when 
+			 the parsing cursor passes over it during text scanning 
+			 but NOT executed when the other semantics actions are run.
+                         You may print whatever info you get including the current
+                         parse object.
+
+ | Z of parsing          Zero or more repetitions of the 'parsing' argument.
+
+ | P of parsing          One or more repetitions of the 'parsing' argument.
+
+ | Opt of parsing        Zero or one occurrence of the 'parsing' argument.
+
+ | L of parsing          One lookahead occurrence of the 'parsing' argument.
+     			 When the 'parsing' argument fails the 'L' is accepted
+			 and parsing resume at the beginning of the 'L' opcode,
+			 when the 'parsing' argument is accepted 'L' fails.
+                         
+ | NT of string          Name of a non terminal.
+
+ | Empty                 Matches the empty string, mostly for readability.
+
+Calling the parser.
+------------------
+
+module YourParsetype = (* do NOT give a type to this module in order to expose *)
+  struct               (* the actual type of the 'parsevalue' to the caller    *)
+                       (* semantic callbacks: int -> int -> 'parse' -> 'parse' *)
+    type t = bobject   (* the 'parsevalue' is just a single object             *)
+  end;;
+    
+module YourParser = LRTTfunctor.Parser(YourParsetype);;
+
+You may then call the parser with:
+
+  let (parsed,pos) = 
+    YourParser.streamparse parsepos parseinit grammar startrule in
+
+Where YourParser.streamparse has type:
+
+ int -> YourParsetype -> YourParser.grammar -> string  -> int 
+     -> (YourParsetype,int)
+
+- 'parsepos' is the initial input position, i.e. you may begin the parsing
+  beyond the zero position of you input.
+
+- 'parseinit' is the initial value of the parse object which is passed to
+  the semantic routines and returned when parsing terminates.
+
+- 'grammar' is your grammar definition according to the above rules, 
+  see the Backus FP example for more.
+
+- 'startrule' is the name of the starting rule in the grammar.
+  The parser is reentrant and may be called with the same or another
+  grammar or different starting rules within the semantic routines.
+  What happens depend only on how you manage your various token
+  strema, each feed is under your control and ONLY your control.
+  There is an example of this in the FP interpreter with the 'read'
+  function sharing the same stream than the main interpreter.
+
+- 'options' is an int which is the logic and of the following flags:
+     full_debug   - most verbose debugging
+     run_debug    - debug messages during semantic runs
+     flush_memo   - flush the memoised parses at start of each semantic run
+     single_parse - run semantic callbacks only when whole text is parsed
+     0-4095       - minimal text span size for memoising parse trees
+
+- '(YourParsetype,int)' the returned values are the last parse object
+  and the last text position successfully parsed.
+
+Shape of the parsing graph and parsing principles.
+-------------------------------------------------
+
+Each node holds:
+
+- a pointer to a production or the tail of a production.
+
+- a cursor into this production, the cursor (shown as °) can point anywhere from 
+  the beginning upto beyond the end.
+
+  " {expr} ° ';'  {osp}  {elseclause}  <semantic> "
+
+- a back pointer to the node from which the current node was issued, i.e. which 
+  cursor points to the non terminal to which the current node's production belongs.
+
+- a list of successors nodes initially empty and having varying roles depending on
+  the state of the parse (explained below).
+
+- several other housekeeping pointers and values including the current offset into
+  the parsed text (see source code).
+
+A node is processed by scanning the parsing elements of its production from the 
+start upto and including the element just after the cursor (except of course 
+when the cursor it at the end).
+A terminal element is either accepted if the current text matches or provoke the 
+rejection of the current node.
+A non terminal element, rule name, optional element or repetition is expanded by
+attaching each corresponding production as a successor in the successors list 
+and processing is moved to the first candidate production with some exceptions 
+due to recursive rules (see source code).
+
+As this is a PEG parser the first production to be entirely matched becomes the
+retained parse, as usual failure of an enclosing rule will also backtrack 
+on all its descending matches.
+
+To handle mutual left recursives rules at any depth left recursions are attempted 
+everywhere they occur and these tentative recursions are stacked in the successors
+list thus resulting in the head elements of the successors list being a record of 
+left recursive calls with the outermost being the first in the successors list.
+Whenever the last attempted recursion fails the previous ones are still accepted
+and the successor list is trimmed to retain only the successful recursions 
+(or none if none succeeded) and the next to last of these recursions which is the
+non recursive production which had been accepted prior to recursion attempts.
+In the final successors list the first successor links to the next node at 
+the same parse level.
+
+... ° {expr} ...
+    |
+    ° -> (next node in full parse tree, i.e. the content of trailing '...' above)
+    |
+    °-> <semantic A> {expr} ° '+' {num} <semantic F>              (Recursive)
+                                  |
+(Recursive)                       °-> <semantic B> {expr} ° '+' {num} <semantic E> 
+		                                          |
+(Non recursive)                                           °-> <semantic C> 
+                                                                  {num}  
+                                                                  <semantic D> 
+
+Semantic actions are run by reaching for the bottom of the successors list while 
+processing A, B, C and then upward processing D, E, F, plus whatever is contained 
+in the {num} rule when traversed.
+The node cursors of left recursive calls point AFTER the recursive production element.
+
+License.
+-------
+
+The LRTT parser is licensed under a modified MIT licence which
+includes the following addendum:
+
+NO PART OF THIS SOFTWARE OR DERIVED VERSIONS SHALL BE LICENSED 
+UNDER ANY OTHER TERMS THAN THE PRESENT LICENSE
+
+This means it can be used in any other software with 
+any other license BUT the parser itself, modified or not, 
+cannot be restricted by the terms of other licenses.
+
+

@@ -1,0 +1,62 @@
+module Dyp_symbols :
+  sig
+    val get_token_name : unit -> int
+    val str_token : 'a -> 'b
+    val ter_string_list : (string * int) list
+  end
+type ('dypgen__Obj_expr, 'dypgen__Obj_main) obj =
+    Lexeme_matched of string
+  | Obj___dypgen_layout
+  | Obj_expr of 'dypgen__Obj_expr
+  | Obj_main of 'dypgen__Obj_main
+  | Dypgen__dummy_obj_cons
+module Dyp_symbols_array :
+  sig
+    val token_name_array : string array
+    val nt_cons_list : (string * int) list
+    val str_cons : ('a, 'b) obj -> string
+    val cons_array : string array
+    val entry_points : string list
+  end
+val dypgen_lexbuf_position :
+  'a Dyp.dyplexbuf -> Lexing.position * Lexing.position
+module Dyp_aux_functions :
+  sig
+    val get_token_value : 'a -> ('b, 'c) obj
+    val cons_table : (string, int) Hashtbl.t
+  end
+module Dyp_priority_data : sig val relations : string list list end
+val local_data : unit
+val local_data_equal : 'a -> 'a -> bool
+val dyp_merge : ('a, 'b, 'c) Dyp.merge_function
+val dypgen_match_length : [> `shortest ]
+val dypgen_choose_token : [> `first ]
+val dypgen_keep_data : [> `both ]
+val dypgen_use_rule_order : bool
+val dypgen_use_all_actions : bool
+val global_data : int
+val global_data_equal : 'a -> 'a -> bool
+val __dypgen_ra_list :
+  ((string * Dyp.symb list * string * 'a list) *
+   ('t, (int, int) obj, int, 'ld, 'l) Dyp.action * 'b list)
+  list
+val __dypgen_main_lexer :
+  (string * Dyp.regexp) list * (int * ('a -> ('b, 'c) obj)) list
+val __dypgen_aux_lexer : 'a list
+val __dypgen_regexp_decl : 'a list
+val dyp_merge_Lexeme_matched : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_expr : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_main : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val __dypgen_merge_list :
+  ((('a, 'b) obj * 'c * 'd) list -> ('a, 'b) obj list * 'c * 'd) list
+val __dypgen_test_cons : unit -> (('a, 'b) obj -> bool) array
+val __dypgen_dummy_marker_2 : unit
+val pp :
+  unit ->
+  (unit, (int, int) obj, int, unit, 'a Dyp.dyplexbuf) Dyp.parser_pilot
+val __dypgen_dummy_marker_5 : unit
+val __dypgen_dummy_marker_3 : unit
+val main :
+  ?global_data:int ->
+  ?local_data:unit -> (int, int) obj Dyp.dyplexbuf -> (int * string) list
+val __dypgen_dummy_marker_4 : unit

@@ -1,0 +1,9 @@
+inner = (ins +)°(ap x)° trans;
+inner [ [1, 2, 3 ], [6 ,5, 4]];
+
+show;
+save prod;
+show inner;
+include "testfiles/fact";
+show *;
+

@@ -1,0 +1,27 @@
+# 1 "calc_parser.dyp"
+# 1 "<built-in>"
+# 1 "<command-line>"
+# 1 "/usr/include/stdc-predef.h" 1 3 4
+# 1 "<command-line>" 2
+# 1 "calc_parser.dyp"
+%start main
+
+%relation pi<pt<pp
+%layout [' ' '\t']
+
+%parser
+
+main: expr "\n" { $1 }
+
+# 1 "expr.dyp" 1
+
+
+expr:
+  | ['0'-'9']+ { int_of_string $1 } pi
+  | "-" expr(=pi) { -$2 } pi
+  | "(" expr ")" { $2 } pi
+  | expr(<=pp) "+" expr(<pp) { $1 + $3 } pp
+  | expr(<=pp) "-" expr(<pp) { $1 - $3 } pp
+  | expr(<=pt) "*" expr(<pt) { $1 * $3 } pt
+  | expr(<=pt) "/" expr(<pt) { $1 / $3 } pt
+# 10 "calc_parser.dyp" 2

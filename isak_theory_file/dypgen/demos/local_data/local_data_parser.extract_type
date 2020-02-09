@@ -1,0 +1,114 @@
+module Dyp_symbols :
+  sig
+    val get_token_name : unit -> int
+    val str_token : 'a -> 'b
+    val ter_string_list : (string * int) list
+  end
+type ('dypgen__Obj_IDENT, 'dypgen__Obj_binding, 'dypgen__Obj_expr,
+      'dypgen__Obj_main)
+     obj =
+    Lexeme_matched of string
+  | Obj_IDENT of 'dypgen__Obj_IDENT
+  | Obj___dypgen_layout
+  | Obj_binding of 'dypgen__Obj_binding
+  | Obj_expr of 'dypgen__Obj_expr
+  | Obj_main of 'dypgen__Obj_main
+  | Dypgen__dummy_obj_cons
+module Dyp_symbols_array :
+  sig
+    val token_name_array : string array
+    val nt_cons_list : (string * int) list
+    val str_cons : ('a, 'b, 'c, 'd) obj -> string
+    val cons_array : string array
+    val entry_points : string list
+  end
+val dypgen_lexbuf_position :
+  'a Dyp.dyplexbuf -> Lexing.position * Lexing.position
+module Dyp_aux_functions :
+  sig
+    val get_token_value : 'a -> ('b, 'c, 'd, 'e) obj
+    val cons_table : (string, int) Hashtbl.t
+  end
+module Dyp_priority_data : sig val relations : 'a list end
+val global_data : unit
+val global_data_equal : 'a -> 'a -> bool
+val dypgen_match_length : [> `shortest ]
+val dypgen_choose_token : [> `first ]
+val dypgen_keep_data : [> `both ]
+val dypgen_use_rule_order : bool
+val dypgen_use_all_actions : bool
+module OrdString : sig type t = string val compare : 'a -> 'a -> int end
+module String_map :
+  sig
+    type key = OrdString.t
+    type 'a t = 'a Map.Make(OrdString).t
+    val empty : 'a t
+    val is_empty : 'a t -> bool
+    val mem : key -> 'a t -> bool
+    val add : key -> 'a -> 'a t -> 'a t
+    val singleton : key -> 'a -> 'a t
+    val remove : key -> 'a t -> 'a t
+    val merge :
+      (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
+    val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
+    val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
+    val iter : (key -> 'a -> unit) -> 'a t -> unit
+    val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+    val for_all : (key -> 'a -> bool) -> 'a t -> bool
+    val exists : (key -> 'a -> bool) -> 'a t -> bool
+    val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+    val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
+    val cardinal : 'a t -> int
+    val bindings : 'a t -> (key * 'a) list
+    val min_binding : 'a t -> key * 'a
+    val max_binding : 'a t -> key * 'a
+    val choose : 'a t -> key * 'a
+    val split : key -> 'a t -> 'a t * 'a option * 'a t
+    val find : key -> 'a t -> 'a
+    val map : ('a -> 'b) -> 'a t -> 'b t
+    val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
+  end
+val is_bound : 'a String_map.t -> String_map.key -> bool
+val insert_binding :
+  'a String_map.t -> String_map.key -> 'a -> 'a String_map.t
+val print_map : Parse_tree.tree String_map.t -> unit
+val local_data : 'a String_map.t
+val local_data_equal : 'a String_map.t -> 'a String_map.t -> bool
+val dyp_merge : ('a, 'b, 'c) Dyp.merge_function
+val __dypgen_ra_list :
+  ((string * Dyp.symb list * string * 'a list) *
+   ('t,
+    (String_map.key, Parse_tree.tree, Parse_tree.tree, Parse_tree.tree) obj,
+    'gd, Parse_tree.tree String_map.t, 'l)
+   Dyp.action * 'b list)
+  list
+val __dypgen_main_lexer :
+  (string * Dyp.regexp) list *
+  (int * ('a Dyp.dyplexbuf -> (String_map.key, 'b, 'c, 'd) obj)) list
+val __dypgen_aux_lexer : 'a list
+val __dypgen_regexp_decl : (string * Dyp.regexp) list
+val dyp_merge_Lexeme_matched : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_IDENT : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_binding : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_expr : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val dyp_merge_Obj_main : ('a * 'b * 'c) list -> 'a list * 'b * 'c
+val __dypgen_merge_list :
+  ((('a, 'b, 'c, 'd) obj * 'e * 'f) list ->
+   ('a, 'b, 'c, 'd) obj list * 'e * 'f)
+  list
+val __dypgen_test_cons : unit -> (('a, 'b, 'c, 'd) obj -> bool) array
+val __dypgen_dummy_marker_2 : unit
+val pp :
+  unit ->
+  (unit,
+   (String_map.key, Parse_tree.tree, Parse_tree.tree, Parse_tree.tree) obj,
+   unit, Parse_tree.tree String_map.t, 'a Dyp.dyplexbuf)
+  Dyp.parser_pilot
+val __dypgen_dummy_marker_5 : unit
+val __dypgen_dummy_marker_3 : unit
+val main :
+  ?global_data:unit ->
+  ?local_data:Parse_tree.tree String_map.t ->
+  (String_map.key, Parse_tree.tree, Parse_tree.tree, Parse_tree.tree) obj
+  Dyp.dyplexbuf -> (Parse_tree.tree * string) list
+val __dypgen_dummy_marker_4 : unit

@@ -1,0 +1,307 @@
+Parsed ([ Syntax (Id, Single (Terminal "Object"), [ Tokena]);
+ Syntax (Id, Single (Terminal "Main"), [ Tokena]);
+ Syntax (Id, Con (Terminal "var", Con (NonTerminal OtherSort Exps, Single (Terminal ";"))), [ ]);
+ Syntax (Id, Con (Terminal "method", Con (NonTerminal Id, Con (Terminal "(", Con (NonTerminal OtherSort Ids, Con (Terminal ")", Single (NonTerminal OtherSort Block)))))), [ ]);
+ Syntax (Id, Con (Terminal "class", Con (NonTerminal Id, Single (NonTerminal OtherSort Block))), [ ]);
+ Syntax (Id, Con (Terminal "class", Con (NonTerminal Id, Con (Terminal "extends", Con (NonTerminal Id, Single (NonTerminal OtherSort Block))))), [ ]);
+ Subsort (Int, Id);
+ Subsort (Bool, Id);
+ Subsort (String, Id);
+ Subsort (Id, Id);
+ Syntax (Id, Single (Terminal "this"), [ ]);
+ Syntax (Id, Single (Terminal "super"), [ ]);
+ Syntax (Id, Con (Terminal "(", Con (NonTerminal OtherSort Exp, Single (Terminal ")"))), [ Bracket]);
+ Syntax (Id, Con (Terminal "++", Single (NonTerminal OtherSort Exp)), [ ]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "instanceOf", Single (NonTerminal Id))), [ Strict (1,)]);
+ Syntax (Id, Con (Terminal "(", Con (NonTerminal Id, Con (Terminal ")", Single (NonTerminal OtherSort Exp)))), [ Strict (2,)]);
+ Syntax (Id, Con (Terminal "new", Con (NonTerminal Id, Con (Terminal "(", Con (NonTerminal OtherSort Exps, Single (Terminal ")"))))), [ Strict (2,)]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal ".", Single (NonTerminal Id))), [ ]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "[", Con (NonTerminal OtherSort Exps, Single (Terminal "]")))), [ Strict ()]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "(", Con (NonTerminal OtherSort Exps, Single (Terminal ")")))), [ Strict (2,)]);
+ Syntax (Id, Con (Terminal "-", Single (NonTerminal OtherSort Exp)), [ Strict ()]);
+ Syntax (Id, Con (Terminal "sizeOf", Con (Terminal "(", Con (NonTerminal OtherSort Exp, Single (Terminal ")")))), [ Strict ()]);
+ Syntax (Id, Con (Terminal "read", Con (Terminal "(", Single (Terminal ")"))), [ ]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "*", Single (NonTerminal OtherSort Exp))), [ Strict (); Left]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "/", Single (NonTerminal OtherSort Exp))), [ Strict (); Left]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "%", Single (NonTerminal OtherSort Exp))), [ Strict (); Left]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "+", Single (NonTerminal OtherSort Exp))), [ Strict (); Left]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "-", Single (NonTerminal OtherSort Exp))), [ Strict (); Left]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "<", Single (NonTerminal OtherSort Exp))), [ Strict (); NonAssoc]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "<=", Single (NonTerminal OtherSort Exp))), [ Strict (); NonAssoc]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal ">", Single (NonTerminal OtherSort Exp))), [ Strict (); NonAssoc]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal ">=", Single (NonTerminal OtherSort Exp))), [ Strict (); NonAssoc]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "==", Single (NonTerminal OtherSort Exp))), [ Strict (); NonAssoc]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "!=", Single (NonTerminal OtherSort Exp))), [ Strict (); NonAssoc]);
+ Syntax (Id, Con (Terminal "!", Single (NonTerminal OtherSort Exp)), [ Strict ()]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "&&", Single (NonTerminal OtherSort Exp))), [ Strict (1,); Left]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "||", Single (NonTerminal OtherSort Exp))), [ Strict (1,); Left]);
+ Syntax (Id, Con (Terminal "spawn", Single (NonTerminal OtherSort Block)), [ ]);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Con (Terminal "=", Single (NonTerminal OtherSort Exp))), [ Strict (2,); Right]);
+ ListSyntax (Id, Id, ,, [ ]);
+ ListSyntax (Id, OtherSort Exp, ,, [ Strict ()]);
+ Syntax (Id, Con (Terminal "{", Single (Terminal "}")), [ ]);
+ Syntax (Id, Con (Terminal "{", Con (NonTerminal OtherSort Stmts, Single (Terminal "}"))), [ ]);
+ Subsort (OtherSort Decl, Id);
+ Subsort (OtherSort Block, Id);
+ Syntax (Id, Con (NonTerminal OtherSort Exp, Single (Terminal ";")), [ Strict ()]);
+ Syntax (Id, Con (Terminal "if", Con (Terminal "(", Con (NonTerminal OtherSort Exp, Con (Terminal ")", Con (NonTerminal OtherSort Block, Con (Terminal "else", Single (NonTerminal OtherSort Block))))))), [ Avoid; Strict (1,)]);
+ Syntax (Id, Con (Terminal "if", Con (Terminal "(", Con (NonTerminal OtherSort Exp, Con (Terminal ")", Single (NonTerminal OtherSort Block))))), [ ]);
+ Syntax (Id, Con (Terminal "while", Con (Terminal "(", Con (NonTerminal OtherSort Exp, Con (Terminal ")", Single (NonTerminal OtherSort Block))))), [ ]);
+ Syntax (Id, Con (Terminal "for", Con (Terminal "(", Con (NonTerminal OtherSort Stmts, Con (NonTerminal OtherSort Exp, Con (Terminal ";", Con (NonTerminal OtherSort Exp, Con (Terminal ")", Single (NonTerminal OtherSort Block)))))))), [ ]);
+ Syntax (Id, Con (Terminal "return", Con (NonTerminal OtherSort Exp, Single (Terminal ";"))), [ Strict ()]);
+ Syntax (Id, Con (Terminal "return", Single (Terminal ";")), [ ]);
+ Syntax (Id, Con (Terminal "print", Con (Terminal "(", Con (NonTerminal OtherSort Exps, Con (Terminal ")", Single (Terminal ";"))))), [ Strict ()]);
+ Syntax (Id, Con (Terminal "try", Con (NonTerminal OtherSort Block, Con (Terminal "catch", Con (Terminal "(", Con (NonTerminal Id, Con (Terminal ")", Single (NonTerminal OtherSort Block))))))), [ ]);
+ Syntax (Id, Con (Terminal "throw", Con (NonTerminal OtherSort Exp, Single (Terminal ";"))), [ Strict ()]);
+ Syntax (Id, Con (Terminal "join", Con (NonTerminal OtherSort Exp, Single (Terminal ";"))), [ Strict ()]);
+ Syntax (Id, Con (Terminal "acquire", Con (NonTerminal OtherSort Exp, Single (Terminal ";"))), [ Strict ()]);
+ Syntax (Id, Con (Terminal "release", Con (NonTerminal OtherSort Exp, Single (Terminal ";"))), [ Strict ()]);
+ Syntax (Id, Con (Terminal "rendezvous", Con (NonTerminal OtherSort Exp, Single (Terminal ";"))), [ Strict ()]);
+ Subsort (OtherSort Stmt, Id);
+ Syntax (Id, Con (NonTerminal OtherSort Stmts, Single (NonTerminal OtherSort Stmts)), [ Right]);
+ Subsort (Int, Id);
+ Subsort (Bool, Id);
+ Subsort (String, Id);
+ Syntax (Id, Con (Terminal "array", Con (Terminal "(", Con (NonTerminal Int, Con (Terminal ",", Con (NonTerminal Int, Single (Terminal ")")))))), [ Klabel (array)]);
+ ListSyntax (Id, OtherSort Val, ,, [ ]);
+ Subsort (OtherSort Val, Id);
+ Subsort (OtherSort Val, Id);
+ Subsort (OtherSort Vals, Id);
+ Syntax (Id, Single (Terminal "undefined"), [ OtherSynAttr latex(\bot)]);
+ Syntax (Id, Single (Terminal "$1"), [ ]);
+ Syntax (Id, Single (Terminal "$2"), [ ]);
+ Syntax (Id, Single (Terminal "nothing"), [ ]);
+ Syntax (Id, Con (Terminal "xstackFrame", Con (Terminal "(", Con (NonTerminal Id, Con (Terminal ",", Con (NonTerminal OtherSort Stmt, Con (Terminal ",", Con (NonTerminal K, Con (Terminal ",", Con (NonTerminal Map, Con (Terminal ",", Con (NonTerminal K, Single (Terminal ")")))))))))))), [ Klabel (xstackFrame)]);
+ Syntax (Id, Con (Terminal "(", Con (NonTerminal Id, Con (Terminal ",", Con (NonTerminal OtherSort Stmt, Con (Terminal ",", Con (NonTerminal K, Con (Terminal ",", Con (NonTerminal Map, Con (Terminal ",", Con (NonTerminal K, Single (Terminal ")"))))))))))), [ ]);
+ Syntax (Id, Single (Terminal "popx"), [ ]);
+ Syntax (Id, Con (Terminal "mkDecls", Con (Terminal "(", Con (NonTerminal OtherSort Ids, Con (Terminal ",", Con (NonTerminal OtherSort Vals, Single (Terminal ")")))))), [ Function; Klabel (mkDecls)]);
+ Syntax (Id, Con (Terminal "lookup", Con (Terminal "(", Con (NonTerminal Int, Single (Terminal ")")))), [ Klabel (lookup)]);
+ Syntax (Id, Con (Terminal "env", Con (Terminal "(", Con (NonTerminal Map, Single (Terminal ")")))), [ Klabel (env)]);
+ Syntax (Id, Con (Terminal "lvalue", Con (Terminal "(", Con (NonTerminal K, Single (Terminal ")")))), [ Klabel (lvalue)]);
+ Syntax (Id, Con (Terminal "loc", Con (Terminal "(", Con (NonTerminal Int, Single (Terminal ")")))), [ Klabel (loc)]);
+ Syntax (Id, Con (NonTerminal Int, Con (Terminal "...", Con (NonTerminal Int, Con (Terminal "|->", Single (NonTerminal K))))), [ Function; OtherSynAttr latex({#1}\ldots{#2}\mapsto{#3})]);
+ Syntax (Id, Single (Terminal "execute"), [ ]);
+ Syntax (Id, Con (Terminal "objectClosure", Con (Terminal "(", Con (NonTerminal Id, Con (Terminal ",", Con (NonTerminal List, Single (Terminal ")")))))), [ Klabel (objectClosure)]);
+ Syntax (Id, Con (Terminal "methodClosure", Con (Terminal "(", Con (NonTerminal Id, Con (Terminal ",", Con (NonTerminal Int, Con (Terminal ",", Con (NonTerminal OtherSort Ids, Con (Terminal ",", Con (NonTerminal OtherSort Stmt, Single (Terminal ")")))))))))), [ Klabel (methodClosure)]);
+ Syntax (Id, Con (Terminal "fstackFrame", Con (Terminal "(", Con (NonTerminal Map, Con (Terminal ",", Con (NonTerminal K, Con (Terminal ",", Con (NonTerminal List, Con (Terminal ",", Con (NonTerminal K, Single (Terminal ")")))))))))), [ Klabel (fstackFrame)]);
+ Syntax (Id, Con (Terminal "(", Con (NonTerminal Map, Con (Terminal ",", Con (NonTerminal K, Con (Terminal ",", Con (NonTerminal K, Single (Terminal ")"))))))), [ ]);
+ Syntax (Id, Con (Terminal "envStackFrame", Con (Terminal "(", Con (NonTerminal Id, Con (Terminal ",", Con (NonTerminal Map, Single (Terminal ")")))))), [ ]);
+ Syntax (Id, Con (Terminal "create", Con (Terminal "(", Con (NonTerminal Id, Single (Terminal ")")))), [ Klabel (create)]);
+ Syntax (Id, Con (Terminal "setCrntClass", Con (Terminal "(", Con (NonTerminal Id, Single (Terminal ")")))), [ Klabel (setCrntClass)]);
+ Syntax (Id, Single (Terminal "addEnvLayer"), [ ]);
+ Syntax (Id, Single (Terminal "storeObj"), [ ]);
+ Syntax (Id, Con (Terminal "#freezerFunCall", Con (Terminal "(", Con (NonTerminal K, Single (Terminal ")")))), [ ]);
+ Syntax (Id, Con (Terminal "lookupMember", Con (Terminal "(", Con (NonTerminal List, Con (Terminal ",", Con (NonTerminal Id, Single (Terminal ")")))))), [ Function; Klabel (lookupMember)])], [ ARule " if (E) S => if (E) S else {}                                 [macro]  "
+;
+ ARule " for(Start Cond; Step) {S} => {Start while (Cond) {S Step;}}  [macro]  "
+;
+ ARule " var E1:Exp, E2:Exp, Es:Exps; => var E1; var E2, Es;          [macro]  "
+;
+ ARule " var X:Id = E; => var X; X = E;                               [macro]  "
+;
+ ARule " class C:Id S => class C extends Object S                     "
+;
+ AConfi " <T color="red">                  <threads color="orange">                    <thread multiplicity="*" color="yellow">                      <k color="green"> $PGM:Stmts ~> execute </k>                                          <control color="cyan">                        <fstack color="blue"> .List </fstack>                        <xstack color="purple"> .List </xstack>                                              <crntObj color="Fuchsia">                             <crntClass> Object </crntClass>                           <envStack> .List </envStack>                           <location multiplicity="?"> .K </location>                        </crntObj>                      </control>                                          <env color="violet"> .Map </env>                      <holds color="black"> .Map </holds>                      <id color="pink"> 0 </id>                    </thread>                  </threads>                                  <store color="white"> .Map </store>                  <busy color="cyan">.Set </busy>                  <terminated color="red"> .Set </terminated>                  <in color="magenta" stream="stdin"> .List </in>                  <out color="brown" stream="stdout"> .List </out>                  <nextLoc color="gray"> 0 </nextLoc>                                  <classes color="Fuchsia">                             <class multiplicity="*" color="Fuchsia">                        <className color="Fuchsia"> Main </className>                        <extends color="Fuchsia"> Object </extends>                        <declarations color="Fuchsia"> .K </declarations>                     </class>                  </classes>                </T>  "
+;
+ ARule " <k> var X:Id; => . ...</k>       <env> Env => Env[X <- L] </env>       <store>... .Map => L |-> undefined ...</store>       <nextLoc> L:Int => L +Int 1 </nextLoc>  "
+;
+ AContext " var _:Id[HOLE];  "
+;
+ ARule " <k> var X:Id[N:Int]; => . ...</k>       <env> Env => Env[X <- L] </env>       <store>... .Map => L |-> array(L +Int 1, N)                          (L +Int 1) ... (L +Int N) |-> undefined ...</store>       <nextLoc> L:Int => L +Int 1 +Int N </nextLoc>    when N >=Int 0  "
+;
+ ARule " var X:Id[N1:Int, N2:Int, Vs:Vals];    => var X[N1];       {         var $1=X;         for(var $2=0; $2 <= N1 - 1; ++$2) {           var X[N2,Vs];           $1[$2] = X;         }       }    [structural]  "
+;
+ ARule " <k> X:Id => V ...</k>       <env>... X |-> L ...</env>       <store>... L |-> V:Val ...</store>  [lookup]  "
+;
+ AContext " ++(HOLE => lvalue(HOLE))  "
+;
+ ARule " <k> ++loc(L) => I +Int 1 ...</k>       <store>... L |-> (I:Int => I +Int 1) ...</store>  [increment]  "
+;
+ ARule " I1 + I2 => I1 +Int I2  "
+;
+ ARule " Str1 + Str2 => Str1 +String Str2  "
+;
+ ARule " I1 - I2 => I1 -Int I2  "
+;
+ ARule " I1 * I2 => I1 *Int I2  "
+;
+ ARule " I1 / I2 => I1 /Int I2 when I2 =/=K 0  "
+;
+ ARule " I1 % I2 => I1 %Int I2 when I2 =/=K 0  "
+;
+ ARule " - I => 0 -Int I  "
+;
+ ARule " I1 < I2 => I1 <Int I2  "
+;
+ ARule " I1 <= I2 => I1 <=Int I2  "
+;
+ ARule " I1 > I2 => I1 >Int I2  "
+;
+ ARule " I1 >= I2 => I1 >=Int I2  "
+;
+ ARule " V1:Val == V2:Val => V1 ==K V2  "
+;
+ ARule " V1:Val != V2:Val => V1 =/=K V2  "
+;
+ ARule " ! T => notBool(T)  "
+;
+ ARule " true  && E => E  "
+;
+ ARule " false && _ => false  "
+;
+ ARule " true  || _ => true  "
+;
+ ARule " false || E => E  "
+;
+ ARule " V:Val[N1:Int, N2:Int, Vs:Vals] => V[N1][N2, Vs]    [structural, anywhere]  "
+;
+ ARule " array(L,_)[N:Int] => lookup(L +Int N)    [structural, anywhere]  "
+;
+ ARule " sizeOf(array(_,N)) => N  "
+;
+ ARule " <k> return(V:Val); ~> _ => V ~> K </k>       <control>         <fstack> ListItem(fstackFrame(Env,K,XS,<crntObj> CO </crntObj>)) => .List ...</fstack>         <xstack> _ => XS </xstack>         <crntObj> _ => CO </crntObj>       </control>       <env> _ => Env </env>  "
+;
+ ARule " return; => return nothing;   [macro]  "
+;
+ ARule " <k> read() => I ...</k> <in> ListItem(I:Int) => .List ...</in>  [read]  "
+;
+ AContext " (HOLE => lvalue(HOLE)) = _  "
+;
+ ARule " <k> loc(L) = V:Val => V ...</k> <store>... L |-> (_ => V) ...</store>    [assignment]  "
+;
+ ARule " {} => .  [structural]  "
+;
+ ARule " <k> { S } => S ~> env(Env) ...</k>  <env> Env </env>  [structural]  "
+;
+ ARule " S1::Stmts S2::Stmts => S1 ~> S2  [structural]  "
+;
+ ARule " _:Val; => .  "
+;
+ ARule " if ( true) S else _ => S  "
+;
+ ARule " if (false) _ else S => S  "
+;
+ ARule " while (E) S => if (E) {S while(E)S}  [structural]  "
+;
+ ARule " <k> print(V:Val, Es => Es); ...</k> <out>... .List => ListItem(V) </out>    [print]  "
+;
+ ARule " print(.Vals); => .  [structural]  "
+;
+ ARule " <k> (try S1 catch(X) {S2} => S1 ~> popx) ~> K </k>       <control>         <xstack> .List => ListItem(xstackFrame(X, S2, K, Env, C)) ...</xstack>         C       </control>       <env> Env </env>  "
+;
+ ARule " <k> popx => . ...</k>       <xstack> ListItem(_) => .List ...</xstack>  "
+;
+ ARule " <k> throw V:Val; ~> _ => { var X = V; S2 } ~> K </k>       <control>         <xstack> ListItem(xstackFrame(X, S2, K, Env, C)) => .List ...</xstack>         (_ => C)       </control>       <env> _ => Env </env>    "
+;
+ ARule " (<thread>... <k>.</k> <holds>H</holds> <id>T</id> ...</thread> => .Bag)         <busy> Busy => Busy -Set keys(H) </busy>       <terminated>... .Set => SetItem(T) ...</terminated>  "
+;
+ ARule " <k> join T:Int; => . ...</k>       <terminated>... SetItem(T) ...</terminated>  "
+;
+ ARule " <k> acquire V:Val; => . ...</k>       <holds>... .Map => V |-> 0 ...</holds>       <busy> Busy (.Set => SetItem(V)) </busy>    when (notBool(V in Busy:Set))  [acquire]  "
+;
+ ARule " <k> acquire V; => . ...</k>       <holds>... V:Val |-> (N:Int => N +Int 1) ...</holds>  "
+;
+ ARule " <k> release V:Val; => . ...</k>       <holds>... V |-> (N => N:Int -Int 1) ...</holds>    when N >Int 0  "
+;
+ ARule " <k> release V; => . ...</k> <holds>... V:Val |-> 0 => .Map ...</holds>       <busy>... SetItem(V) => .Set ...</busy>  "
+;
+ ARule " <k> rendezvous V:Val; => . ...</k>       <k> rendezvous V; => . ...</k>  [rendezvous]  "
+;
+ ARule " mkDecls((X:Id, Xs:Ids), (V:Val, Vs:Vals)) => var X=V; mkDecls(Xs,Vs)  "
+;
+ ARule " mkDecls(.Ids,.Vals) => {}    "
+;
+ ARule " <k> lookup(L) => V ...</k> <store>... L |-> V:Val ...</store>  [lookup]  "
+;
+ ARule " <k> env(Env) => . ...</k>  <env> _ => Env </env>  [structural]  "
+;
+ ARule " (env(_) => .) ~> env(_)  [structural]      "
+;
+ ARule " <k> lvalue(X:Id => loc(L)) ...</k> <env>... X |-> L:Int ...</env>    [structural]  "
+;
+ AContext " lvalue(_:>Exp[HOLE:>Exps])  "
+;
+ AContext " lvalue(HOLE:>Exp[_:>Exps])  "
+;
+ ARule " lvalue(lookup(L:Int) => loc(L))  [structural]  "
+;
+ ARule " N...M |-> _ => .Map  when N >Int M  "
+;
+ ARule " N...M |-> K => N |-> K (N +Int 1)...M |-> K  when N <=Int M  "
+;
+ ARule " <k> execute => new Main(.Exps); </k> <env> .Map </env>  [structural]  "
+;
+ ARule " <k> methodClosure(Class,OL,Xs,S)(Vs:Vals) ~> K           => mkDecls(Xs,Vs) S return; </k>       <env> Env => .Map </env>       <store>... OL |-> objectClosure(_, EnvStack)...</store>            <control>          <xstack> XS </xstack>          <fstack> .List => ListItem(fstackFrame(Env, K, XS, <crntObj> Obj' </crntObj>))          ...</fstack>          <crntObj> Obj' => <crntClass> Class </crntClass> <envStack> EnvStack </envStack> </crntObj>       </control>  "
+;
+ ARule " <thread>...         <k> spawn S => !T:Int ...</k>         <env> Env </env>         <crntObj> Obj </crntObj>       ...</thread>       (.Bag => <thread>...               <k> S </k>               <env> Env </env>               <id> !T </id>               <crntObj> Obj </crntObj>             ...</thread>)  "
+;
+ ARule " <k> class Class1 extends Class2 { S } => . ...</k>       <classes>... (.Bag => <class>                            <className> Class1 </className>                            <extends> Class2 </extends>                            <declarations> S </declarations>                        </class>)       ...</classes>  [structural]  "
+;
+ ARule " <k> method F:Id(Xs:Ids) S => . ...</k>       <crntClass> Class:Id </crntClass>       <location> OL:Int </location>       <env> Env => Env[F <- L] </env>       <store>... .Map => L |-> methodClosure(Class,OL,Xs,S) ...</store>       <nextLoc> L => L +Int 1 </nextLoc>  "
+;
+ ARule " <k> new Class:Id(Vs:Vals) ~> K           => create(Class) ~> storeObj ~> Class(Vs); return this; </k>       <env> Env => .Map </env>       <nextLoc> L:Int => L +Int 1 </nextLoc>            <control> <xstack> XS </xstack>         <crntObj> Obj                   => <crntClass> Object </crntClass>                      <envStack> ListItem(envStackFrame(Object, .Map)) </envStack>                      <location> L </location>         </crntObj>         <fstack> .List => ListItem(fstackFrame(Env, K, XS, <crntObj> Obj </crntObj>)) ...</fstack>       </control>  "
+;
+ ARule " <k> create(Class:Id)           => create(Class1) ~> setCrntClass(Class) ~> S ~> addEnvLayer ...</k>       <className> Class </className>       <extends> Class1:Id </extends>       <declarations> S </declarations>  [structural]  "
+;
+ ARule " <k> create(Object) => . ...</k>  [structural]  "
+;
+ ARule " <k> setCrntClass(C) => . ...</k>       <crntClass> _ => C </crntClass>  [structural]  "
+;
+ ARule " <k> addEnvLayer => . ...</k>       <env> Env => .Map </env>       <crntClass> Class:Id </crntClass>       <envStack> .List => ListItem(envStackFrame(Class, Env)) ...</envStack>    [structural]  "
+;
+ ARule " <k> storeObj => . ...</k>       <crntObj> <crntClass> CC </crntClass> <envStack> ES </envStack> (<location> L:Int </location> => .Bag) </crntObj>       <store>... .Map => L |-> objectClosure(CC, ES) ...</store>  "
+;
+ ARule " <k> this => objectClosure(CC, ES) ...</k>       <crntObj> <crntClass> CC </crntClass> <envStack> ES </envStack> </crntObj>  "
+;
+ ARule " <k> X:Id => this . X ...</k> <env> Env:Map </env>    when notBool(X in keys(Env))  [structural]  "
+;
+ AContext " HOLE._::Id when (HOLE =/=K super)  "
+;
+ ARule " objectClosure(Class:Id, ListItem(envStackFrame(Class,Env)) EStack)       . X:Id    => lookupMember(ListItem(envStackFrame(Class,Env)) EStack, X)    [structural]  "
+;
+ ARule " objectClosure(Class:Id, (ListItem(envStackFrame(Class':Id,_)) => .List) _)       . X:Id    when Class =/=K Class'  [structural]  "
+;
+ ARule " <k> super . X => lookupMember(EStack, X) ...</k>       <crntClass> Class:Id </crntClass>       <envStack> ListItem(envStackFrame(Class,_)) EStack </envStack>    [structural]  "
+;
+ ARule " <k> super . X ...</k>       <crntClass> Class </crntClass>       <envStack> ListItem(envStackFrame(Class':Id,_)) => .List ...</envStack>    when Class =/=K Class'  [structural]  "
+;
+ ARule " <k> (X:Id => V)(_:Exps) ...</k>       <env>... X |-> L ...</env>       <store>... L |-> V:Val ...</store>  [lookup]  "
+;
+ ARule " <k> (X:Id => this . X)(_:Exps) ...</k>       <env> Env </env>    when notBool(X in keys(Env))  [structural]  "
+;
+ AContext " HOLE._::Id(_) when HOLE =/=K super  "
+;
+ ARule " (objectClosure(_, EStack) . X    => lookupMember(EStack, X:Id))(_:Exps)  [structural]  "
+;
+ ARule " <k> (super . X            => lookupMember(EStack,X))(_:Exps)...</k>       <crntClass> Class </crntClass>       <envStack> ListItem(envStackFrame(Class,_)) EStack </envStack>    [structural]  "
+;
+ ARule " <k> (super . X)(_:Exps) ...</k>       <crntClass> Class </crntClass>       <envStack> ListItem(envStackFrame(Class':Id,_)) => .List ...</envStack>    when Class =/=K Class'  [structural]    "
+;
+ ARule " (A:Exp(B:Exps))(C:Exps) => A(B) ~> #freezerFunCall(C)  "
+;
+ ARule " (A:Exp[B:Exps])(C:Exps) => A[B] ~> #freezerFunCall(C)  "
+;
+ ARule " V:Val ~> #freezerFunCall(C:Exps) => V(C)  "
+;
+ ARule " <k> (lookup(L) => V)(_:Exps) ...</k>  <store>... L |-> V:Val ...</store>    [lookup]  "
+;
+ ARule " objectClosure(_, ListItem(envStackFrame(C,_)) _)       instanceOf C => true  "
+;
+ ARule " objectClosure(_, (ListItem(envStackFrame(C,_)) => .List) _)       instanceOf C'  when C =/=K C'  [structural]  "
+;
+ ARule " objectClosure(_, .List) instanceOf _ => false  "
+;
+ ARule " (C) objectClosure(_ , EnvStack) => objectClosure(C ,EnvStack)  "
+;
+ ARule " <k> lvalue(X:Id => this . X) ...</k>  <env> Env </env>    when notBool(X in keys(Env))  [structural]  "
+;
+ AContext " lvalue((HOLE . _)<:Exp)  "
+;
+ ARule " lvalue(objectClosure(Class, ListItem(envStackFrame(Class,Env)) EStack)              . X              => lookupMember(ListItem(envStackFrame(Class,Env)) EStack,                              X))  [structural]  "
+;
+ ARule " lvalue(objectClosure(Class, (ListItem(envStackFrame(Class':Id,_)) => .List) _)              . X)    when Class =/=K Class'  [structural]    "
+;
+ ARule " lookupMember(ListItem(envStackFrame(_, X|->L _)) _, X)    => lookup(L)  "
+;
+ ARule " lookupMember(ListItem(envStackFrame(_, Env)) Rest, X) =>       lookupMember(Rest, X)    when notBool(X in keys(Env))"
+])

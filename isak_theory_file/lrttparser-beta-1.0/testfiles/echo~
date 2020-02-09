@@ -1,0 +1,7 @@
+-- testing for comment handling
+echo = (ap print)°[read, -- here
+ '\n'];
+show *;
+
+echo 3;
+haha;
